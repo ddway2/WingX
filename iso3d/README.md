@@ -75,6 +75,39 @@ Retourne la version de la librairie.
 #### `iso3d.debug()`
 Affiche les informations de debug dans la console.
 
+### Fonctions de rendu
+
+#### `iso3d.drawTileDiamond(x, y, z, color, opacity)`
+Dessine une tuile isométrique plate (losange).
+
+```lua
+iso3d.drawTileDiamond(5, 5, 10, {0.2, 0.8, 0.3, 1}, 1.0)
+```
+
+#### `iso3d.drawTileBlock(x, y, z, height, color, opacity)`
+Dessine un bloc 3D isométrique avec faces gauche, droite et dessus.
+
+```lua
+iso3d.drawTileBlock(5, 5, 0, 30, {0.5, 0.5, 0.5, 1}, 1.0)
+```
+
+#### `iso3d.drawTile(tile, x, y, tileset, renderMode)`
+Dessine une tuile avec ses propriétés du tileset.
+
+- `renderMode` : 'block' (3D) ou 'flat' (2D)
+
+```lua
+local tile = gameMap:getTile(2, 3)
+iso3d.drawTile(tile, 2, 3, tileset, 'block')
+```
+
+#### `iso3d.drawMap(gameMap, renderMode, offset)`
+Dessine une map complète avec tri en profondeur.
+
+```lua
+iso3d.drawMap(gameMap, 'block', {x = 400, y = 300})
+```
+
 ## Gestion des Tilesets
 
 Les tilesets définissent les types de tuiles avec leurs propriétés visuelles, assets et paramètres d'affichage.
@@ -293,10 +326,14 @@ end
 - [x] Propriétés visuelles : sprites, couleurs, animations
 - [x] Propriétés gameplay : walkable, transparent, tags
 - [x] Paramètres d'affichage : heightOffset, scale, opacity, glow
-- [ ] Rendu de tuiles avec sprites/textures
-- [ ] Dessin de formes 3D (cubes, plans)
-- [ ] Système de caméra
-- [ ] Tri en profondeur (depth sorting)
+- [x] Rendu de tuiles isométriques (losange/bloc 3D)
+- [x] Fonction drawTile avec support tileset
+- [x] Fonction drawMap avec rendu complet
+- [x] Tri en profondeur (depth sorting)
+- [x] Modes de rendu : 'block' (3D) et 'flat' (2D)
+- [ ] Rendu avec sprites/textures depuis fichiers
+- [ ] Support des animations de tuiles
+- [ ] Système de caméra avancé (zoom, rotation)
 - [ ] Optimisations de performance
 
 ## Licence

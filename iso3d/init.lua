@@ -101,4 +101,156 @@ function iso3d.debug()
   print('========================')
 end
 
+-- Draw an isometric tile (diamond shape)
+function iso3d.drawTileDiamond(x, y, z, color, opacity)
+  local screenX, screenY = iso3d.toScreen(x, y, z)
+  local tw = iso3d.config.tileWidth / 2
+  local th = iso3d.config.tileHeight / 2
+
+  -- Set color and opacity
+  if color then
+    local r, g, b, a = color[1], color[2], color[3], color[4] or 1
+    if opacity then
+      a = a * opacity
+    end
+    love.graphics.setColor(r, g, b, a)
+  else
+    love.graphics.setColor(1, 1, 1, opacity or 1)
+  end
+
+  -- Draw diamond (isometric tile top face)
+  local vertices = {
+    screenX, screenY - th,        -- Top
+    screenX + tw, screenY,        -- Right
+    screenX, screenY + th,        -- Bottom
+    screenX - tw, screenY         -- Left
+  }
+
+  love.graphics.polygon('fill', vertices)
+
+  -- Draw outline
+  love.graphics.setColor(0, 0, 0, 0.3)
+  love.graphics.polygon('line', vertices)
+end
+
+-- Draw a 3D tile block (with height)
+function iso3d.drawTileBlock(x, y, z, height, color, opacity)
+  local screenX, screenY = iso3d.toScreen(x, y, z)
+  local tw = iso3d.config.tileWidth / 2
+  local th = iso3d.config.tileHeight / 2
+  local blockHeight = height or th
+
+  -- Set base color
+  local r, g, b, a = 1, 1, 1, 1
+  if color then
+    r, g, b = color[1], color[2], color[3]
+    a = color[4] or 1
+  end
+  if opacity then
+    a = a * opacity
+  end
+
+  -- Draw left face (darker)
+  love.graphics.setColor(r * 0.7, g * 0.7, b * 0.7, a)
+  local leftFace = {
+    screenX - tw, screenY,              -- Top left
+    screenX, screenY + th,              -- Bottom
+    screenX, screenY + th + blockHeight, -- Bottom with height
+    screenX - tw, screenY + blockHeight  -- Top left with height
+  }
+  love.graphics.polygon('fill', leftFace)
+
+  -- Draw right face (medium)
+  love.graphics.setColor(r * 0.85, g * 0.85, b * 0.85, a)
+  local rightFace = {
+    screenX + tw, screenY,              -- Top right
+    screenX, screenY + th,              -- Bottom
+    screenX, screenY + th + blockHeight, -- Bottom with height
+    screenX + tw, screenY + blockHeight  -- Top right with height
+  }
+  love.graphics.polygon('fill', rightFace)
+
+  -- Draw top face (lightest)
+  love.graphics.setColor(r, g, b, a)
+  local topFace = {
+    screenX, screenY - th + blockHeight,        -- Top
+    screenX + tw, screenY + blockHeight,        -- Right
+    screenX, screenY + th + blockHeight,        -- Bottom
+    screenX - tw, screenY + blockHeight         -- Left
+  }
+  love.graphics.polygon('fill', topFace)
+
+  -- Draw outlines
+  love.graphics.setColor(0, 0, 0, 0.3)
+  love.graphics.polygon('line', leftFace)
+  love.graphics.polygon('line', rightFace)
+  love.graphics.polygon('line', topFace)
+end
+
+-- Draw a single tile with tileset properties
+function iso3d.drawTile(tile, x, y, tileset, renderMode)
+  if not tile then return end
+
+  renderMode = renderMode or 'block'  -- 'block' or 'flat'
+
+  -- Get tile definition from tileset
+  local tileDef = nil
+  if tileset then
+    tileDef = tileset:getDefinition(tile.type)
+  end
+
+  -- Get display properties
+  local color = tileDef and tileDef.color or {0.8, 0.8, 0.8, 1}
+  local heightOffset = tileDef and tileDef.heightOffset or 0
+  local opacity = tileDef and tileDef.opacity or 1.0
+  local scale = tileDef and tileDef.scale or 1.0
+
+  -- Calculate Z position
+  local z = (tile.height or 0) * 10 + heightOffset
+
+  -- Render based on mode
+  if renderMode == 'flat' then
+    iso3d.drawTileDiamond(x, y, z, color, opacity)
+  else
+    -- Block rendering with height
+    local blockHeight = (tile.height or 0) * 10
+    if blockHeight > 0 then
+      iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity)
+    else
+      iso3d.drawTileDiamond(x, y, z, color, opacity)
+    end
+  end
+
+  -- Draw debug info if enabled
+  if iso3d.config.debug then
+    local screenX, screenY = iso3d.toScreen(x, y, z)
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.print(string.format("%s:%d", tile.type, tile.height), screenX - 10, screenY - 5)
+  end
+end
+
+-- Draw a complete map
+function iso3d.drawMap(gameMap, renderMode, offset)
+  if not gameMap then return end
+
+  renderMode = renderMode or 'block'
+  offset = offset or {x = 0, y = 0}
+
+  love.graphics.push()
+  love.graphics.translate(offset.x, offset.y)
+
+  -- Draw tiles back to front for proper depth sorting
+  for y = gameMap.height, 1, -1 do
+    for x = 1, gameMap.width do
+      local tile = gameMap:getTile(x, y)
+      if tile then
+        iso3d.drawTile(tile, x, y, gameMap:getTileset(), renderMode)
+      end
+    end
+  end
+
+  love.graphics.pop()
+  love.graphics.setColor(1, 1, 1, 1)  -- Reset color
+end
+
 return iso3d
