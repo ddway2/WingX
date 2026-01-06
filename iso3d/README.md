@@ -203,7 +203,7 @@ end
 
 ## Gestion des Maps
 
-iso3d inclut un système de gestion de maps avec support de tuiles et hauteurs (0-3 niveaux).
+iso3d inclut un système de gestion de maps avec support de tuiles et hauteurs (-2 à 3 niveaux).
 
 ### Format de fichier Map
 
@@ -225,7 +225,7 @@ w:0 g:1 s:2
 - `d` = dirt (terre)
 - `.` = tuile vide
 
-**Hauteur :** 0-3 (0 = niveau du sol, 3 = plus haut)
+**Hauteur :** -2 à 3 (-2 = le plus bas (eau profonde, vallées), 0 = niveau du sol, 3 = le plus haut (montagnes))
 
 **Paramètres optionnels :** `key=value,key2=value2`
 
@@ -242,9 +242,9 @@ function love.load()
 
   -- Ou depuis une chaîne
   local mapString = [[
-    g:0 g:1 g:2
-    w:0 g:1 s:2
-    g:1 g:2 g:3
+    w:-2 w:-1 g:0
+    w:-1 g:0 g:1
+    g:1 s:2 s:3
   ]]
   local gameMap = mapModule.loadFromString(mapString)
 end
@@ -320,7 +320,7 @@ end
 - [x] Conversion de coordonnées 2D vers 3D
 - [x] Fonctions de dessin basiques (points, lignes)
 - [x] Système de maps avec format textuel
-- [x] Support de tuiles avec hauteurs (0-3 niveaux)
+- [x] Support de tuiles avec hauteurs (-2 à 3 niveaux)
 - [x] Paramètres personnalisables par tuile
 - [x] Système de tilesets pour définir les types de tuiles
 - [x] Propriétés visuelles : sprites, couleurs, animations

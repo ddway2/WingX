@@ -71,7 +71,7 @@ map.Tile.__index = map.Tile
 function map.Tile.new(type, height, params)
   local t = setmetatable({}, map.Tile)
   t.type = type or 'g'  -- Default: grass
-  t.height = height or 0  -- Default: height 0 (0-3 supported)
+  t.height = height or 0  -- Default: height 0 (-2 to 3 supported)
   t.params = params or {}
   return t
 end
@@ -104,8 +104,8 @@ function map.parseTileString(str)
     end
   end
 
-  -- Clamp height to 0-3
-  height = math.max(0, math.min(3, height))
+  -- Clamp height to -2 to 3
+  height = math.max(-2, math.min(3, height))
 
   return map.Tile.new(tileType, height, params)
 end

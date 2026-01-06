@@ -11,6 +11,7 @@ def generate_island_map(size=64):
     lines = []
     lines.append("# Island Map {}x{} - Island surrounded by water".format(size, size))
     lines.append("# Types: g=grass, w=water, s=stone, d=dirt, n=sand")
+    lines.append("# Heights: -2 (deepest water) to 3 (highest mountain)")
     lines.append("")
 
     center_x, center_y = size // 2, size // 2
@@ -28,10 +29,10 @@ def generate_island_map(size=64):
 
             if dist > island_radius + 8:
                 # Deep water
-                row.append('w:0')
+                row.append('w:-2')
             elif dist > island_radius + 3:
                 # Shallow water with sand
-                row.append('w:0' if random.random() > 0.3 else 'n:0')
+                row.append('w:-1' if random.random() > 0.3 else 'n:-1')
             elif dist > island_radius:
                 # Beach (sand)
                 row.append('n:0')
@@ -62,6 +63,7 @@ def generate_terrain_map(size=64):
     lines = []
     lines.append("# Terrain Map {}x{} - Varied natural landscape".format(size, size))
     lines.append("# Types: g=grass, w=water, s=stone, d=dirt")
+    lines.append("# Heights: -2 (valleys) to 3 (peaks)")
     lines.append("")
 
     # Create height map using Perlin-like noise
@@ -96,19 +98,23 @@ def generate_terrain_map(size=64):
         row = []
         for x in range(size):
             if (x, y) in river_path:
-                row.append('w:0')
+                row.append('w:-1')
             else:
                 h = heightmap[y][x]
-                if h < 0.2:
-                    row.append('g:0')
-                elif h < 0.4:
-                    row.append('g:1')
-                elif h < 0.6:
-                    row.append('g:2')
+                if h < 0.15:
+                    row.append('d:-2')  # Deep valleys
+                elif h < 0.3:
+                    row.append('g:-1')  # Low areas
+                elif h < 0.5:
+                    row.append('g:0')   # Flat ground
+                elif h < 0.65:
+                    row.append('g:1')   # Hills
                 elif h < 0.8:
-                    row.append('s:2')
+                    row.append('g:2')   # High hills
+                elif h < 0.9:
+                    row.append('s:2')   # Mountain base
                 else:
-                    row.append('s:3')
+                    row.append('s:3')   # Peaks
 
         lines.append(' '.join(row))
 
@@ -119,6 +125,7 @@ def generate_city_grid(size=64):
     lines = []
     lines.append("# City Map {}x{} - Grid with roads and buildings".format(size, size))
     lines.append("# Types: g=grass, s=stone (buildings), d=dirt (roads)")
+    lines.append("# Heights: -1 (sunken roads) to 3 (tall buildings)")
     lines.append("")
 
     block_size = 8
@@ -132,8 +139,8 @@ def generate_city_grid(size=64):
             on_vertical_road = (x % block_size) < road_width
 
             if on_horizontal_road or on_vertical_road:
-                # Road
-                row.append('d:0')
+                # Sunken road
+                row.append('d:-1')
             else:
                 # Building block
                 # Add some variation in building heights
@@ -146,7 +153,7 @@ def generate_city_grid(size=64):
                     height = 0 if random.random() > 0.2 else 1
                     row.append('g:{}'.format(height))
                 else:
-                    # Building
+                    # Building (heights 1-3)
                     height = (seed % 3) + 1
                     row.append('s:{}'.format(height))
 
@@ -158,16 +165,18 @@ def generate_checkerboard(size=64):
     """Generate a checkerboard pattern for testing"""
     lines = []
     lines.append("# Checkerboard Map {}x{} - Pattern for testing".format(size, size))
+    lines.append("# Heights: -2 to 3 (full range)")
     lines.append("")
 
     for y in range(size):
         row = []
         for x in range(size):
             if (x + y) % 2 == 0:
-                height = ((x // 8) + (y // 8)) % 4
+                # Map to range -2 to 3 (6 values)
+                height = (((x // 8) + (y // 8)) % 6) - 2
                 row.append('g:{}'.format(height))
             else:
-                height = ((x // 8) + (y // 8)) % 4
+                height = (((x // 8) + (y // 8)) % 6) - 2
                 row.append('s:{}'.format(height))
 
         lines.append(' '.join(row))

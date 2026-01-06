@@ -214,9 +214,11 @@ function iso3d.drawTile(tile, x, y, tileset, renderMode)
   else
     -- Block rendering with height
     local blockHeight = (tile.height or 0) * 10
-    if blockHeight > 0 then
+    if blockHeight ~= 0 then
+      -- For negative heights, draw block below ground level
       iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity)
     else
+      -- Height 0: draw flat diamond
       iso3d.drawTileDiamond(x, y, z, color, opacity)
     end
   end
