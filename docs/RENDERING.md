@@ -241,11 +241,11 @@ if blockHeight > 0 then
 end
 ```
 
-**Hauteur négative (bloc enfoncé):**
+**Hauteur négative (trou avec sprite au fond):**
 ```lua
 if blockHeight < 0 then
-  -- 1. Dessiner le bloc 3D enfoncé (avec opacité réduite)
-  iso3d.drawTileBlock(x, y, blockHeight, -blockHeight, color, opacity * 0.8)
+  -- 1. Dessiner le trou 3D (avec opacité réduite)
+  iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity * 0.8)
 
   -- 2. Dessiner le sprite au fond du trou
   iso3d.drawTileSprite(x, y, blockHeight, sprite, opacity, scale)
@@ -378,7 +378,7 @@ drawTile()
          |         |    └─> drawTileSprite(x,y,h) (sprite au sommet)
          |         |
          |         ├─> Si height < 0:
-         |         |    ├─> drawTileBlock(x,y,h,-h) (bloc enfoncé)
+         |         |    ├─> drawTileBlock(x,y,0,h) (trou, h négatif)
          |         |    └─> drawTileSprite(x,y,h) (sprite au fond)
          |         |
          |         └─> Si height = 0:
@@ -394,7 +394,7 @@ drawTile()
                    |    └─> drawTileBlock(x,y,0,h) (s'élève)
                    |
                    ├─> Si height < 0:
-                   |    └─> drawTileBlock(x,y,h,-h) (s'enfonce)
+                   |    └─> drawTileBlock(x,y,0,h) (trou, h négatif)
                    |
                    └─> Si height = 0:
                         └─> drawTileDiamond()
@@ -443,22 +443,32 @@ local blockHeight = tile.height * 10
 iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity)
 -- Exemple: height=2 → drawTileBlock(x, y, 0, 20, ...)
 -- Le bloc s'élève de z=0 à z=20
+-- Faces extérieures: gauche (70%), droite (85%), dessus (100%)
 ```
 
 **Pour les hauteurs négatives (height < 0):**
 ```lua
 local blockHeight = tile.height * 10  -- négatif
-iso3d.drawTileBlock(x, y, blockHeight, -blockHeight, color, opacity)
+iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity)
 -- Exemple: height=-2 → blockHeight=-20
---         → drawTileBlock(x, y, -20, 20, ...)
--- Le bloc s'enfonce de z=-20 à z=0
+--         → drawTileBlock(x, y, 0, -20, ...)
+-- Le trou descend de z=0 à z=-20
+-- Faces intérieures inversées: gauche (70%), droite (85%), fond (50%)
 ```
 
-- Pour les hauteurs négatives, le bloc est dessiné "enfoncé" sous le niveau 0
-- Le point de départ z est négatif (blockHeight)
-- La hauteur du bloc est positive (-blockHeight)
-- La face supérieure apparaît au niveau du sol (z=0)
-- Les faces latérales descendent jusqu'au fond (z=blockHeight)
+**Différences clés entre blocs positifs et négatifs:**
+
+Hauteurs positives (blocs qui s'élèvent):
+- Faces extérieures visibles
+- Faces montent depuis z=0
+- Face supérieure au sommet (100% luminosité)
+- Vertex dans le sens normal
+
+Hauteurs négatives (trous/vallées):
+- Faces intérieures visibles (inversées)
+- Faces descendent depuis z=0
+- Face inférieure au fond du trou (50% luminosité)
+- Vertex dans le sens inversé pour montrer l'intérieur
 
 **Visualisation:**
 
