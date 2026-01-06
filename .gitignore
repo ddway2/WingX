@@ -1,0 +1,25 @@
+# LOVR build files
+build/
+*.o
+*.so
+*.dll
+*.dylib
+*.exe
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Lua files
+luac.out
+
+# Temporary files
+*.tmp
+*.log
