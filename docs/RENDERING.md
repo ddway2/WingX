@@ -45,6 +45,16 @@ screenY = (x + y) * (tileHeight / 2) - z
 - `- z` : Soustraction de la hauteur pour l'élévation
 - Résultat: déplacement vertical sur l'écran
 
+**⚠️ Important - Inversion de l'axe Y:**
+
+Dans le système isométrique, l'axe Z est inversé par rapport à l'axe Y de l'écran:
+- **Z augmente** → screenY **diminue** (l'objet monte à l'écran)
+- **Z diminue** → screenY **augmente** (l'objet descend à l'écran)
+
+C'est pourquoi dans `toScreen()`, on **soustrait** Z de screenY. Cette inversion est cruciale pour le rendu correct des blocs 3D:
+- **Blocs positifs (height > 0)**: on utilise `screenY - blockHeight` pour que le bloc monte
+- **Trous négatifs (height < 0)**: on utilise `screenY + depth` pour que le trou descende
+
 ### Exemple visuel
 
 ```
@@ -134,39 +144,68 @@ Avec tileWidth=64 et tileHeight=32:
 Le bloc 3D est composé de **3 faces** :
 
 #### Face Gauche (70% de luminosité)
+
+**Pour les blocs positifs (élévation):**
 ```lua
 local leftFace = {
-  screenX - tw, screenY,              -- Haut gauche
-  screenX, screenY + th,              -- Bas
-  screenX, screenY + th + height,     -- Bas + hauteur
-  screenX - tw, screenY + height      -- Haut gauche + hauteur
+  screenX - tw, screenY,              -- Haut gauche au sol
+  screenX, screenY + th,              -- Bas au sol
+  screenX, screenY + th - blockHeight, -- Bas élevé
+  screenX - tw, screenY - blockHeight  -- Haut gauche élevé
 }
 love.graphics.setColor(r * 0.7, g * 0.7, b * 0.7, a)
 love.graphics.polygon('fill', leftFace)
 ```
 
+**Pour les trous négatifs (profondeur):**
+```lua
+local depth = -blockHeight  -- Convertir en positif
+local leftFace = {
+  screenX - tw, screenY,              -- Haut gauche au sol
+  screenX - tw, screenY + depth,      -- Haut gauche au fond
+  screenX, screenY + th + depth,      -- Bas au fond
+  screenX, screenY + th                -- Bas au sol
+}
+```
+
 #### Face Droite (85% de luminosité)
+
+**Pour les blocs positifs:**
 ```lua
 local rightFace = {
-  screenX + tw, screenY,              -- Haut droite
-  screenX, screenY + th,              -- Bas
-  screenX, screenY + th + height,     -- Bas + hauteur
-  screenX + tw, screenY + height      -- Haut droite + hauteur
+  screenX + tw, screenY,              -- Haut droite au sol
+  screenX, screenY + th,              -- Bas au sol
+  screenX, screenY + th - blockHeight, -- Bas élevé
+  screenX + tw, screenY - blockHeight  -- Haut droite élevé
 }
 love.graphics.setColor(r * 0.85, g * 0.85, b * 0.85, a)
 love.graphics.polygon('fill', rightFace)
 ```
 
 #### Face Supérieure (100% de luminosité)
+
+**Pour les blocs positifs:**
 ```lua
 local topFace = {
-  screenX, screenY - th + height,        -- Haut
-  screenX + tw, screenY + height,        -- Droite
-  screenX, screenY + th + height,        -- Bas
-  screenX - tw, screenY + height         -- Gauche
+  screenX, screenY - th - blockHeight,        -- Haut
+  screenX + tw, screenY - blockHeight,        -- Droite
+  screenX, screenY + th - blockHeight,        -- Bas
+  screenX - tw, screenY - blockHeight         -- Gauche
 }
 love.graphics.setColor(r, g, b, a)
 love.graphics.polygon('fill', topFace)
+```
+
+**Pour les trous négatifs (face du fond):**
+```lua
+local depth = -blockHeight
+local bottomFace = {
+  screenX, screenY - th + depth,        -- Haut
+  screenX + tw, screenY + depth,        -- Droite
+  screenX, screenY + th + depth,        -- Bas
+  screenX - tw, screenY + depth         -- Gauche
+}
+love.graphics.setColor(r * 0.5, g * 0.5, b * 0.5, a)  -- Plus sombre
 ```
 
 **Visualisation d'un bloc:**
