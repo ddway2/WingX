@@ -201,6 +201,29 @@ if tileDef then
 end
 ```
 
+## Système de Rendu
+
+iso3d utilise une projection isométrique pour convertir des coordonnées 3D en 2D.
+
+**Pour une explication complète du système de rendu, voir [`docs/RENDERING.md`](../docs/RENDERING.md)**
+
+Ce document détaillé couvre:
+- Formules mathématiques de la projection isométrique
+- Rendu des tuiles plates (diamant) et blocs 3D
+- Rendu avec sprites et animations
+- Tri en profondeur (depth sorting)
+- Pipeline complet de rendu
+- Optimisations et performances
+
+### Rendu rapide
+
+```lua
+-- Dessiner une map complète
+iso3d.drawMap(gameMap, 'block', {x = 400, y = 300})
+
+-- Modes disponibles: 'block' (3D) ou 'flat' (2D)
+```
+
 ## Gestion des Maps
 
 iso3d inclut un système de gestion de maps avec support de tuiles et hauteurs (-2 à 3 niveaux).
