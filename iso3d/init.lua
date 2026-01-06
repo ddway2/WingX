@@ -316,8 +316,8 @@ function iso3d.drawTile(tile, x, y, tileset, renderMode, gameMap)
     local leftTile = gameMap:getTile(x - 1, y)
     leftHeight = leftTile and leftTile.height or 0
 
-    -- Right neighbor shares the right face: (x, y+1)
-    local rightTile = gameMap:getTile(x, y + 1)
+    -- Right neighbor shares the right face: (x, y-1)
+    local rightTile = gameMap:getTile(x, y - 1)
     rightHeight = rightTile and rightTile.height or 0
   end
 
