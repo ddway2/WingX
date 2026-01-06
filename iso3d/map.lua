@@ -111,7 +111,7 @@ function map.parseTileString(str)
 end
 
 -- Load a map from a string
--- Format: Each line is a row, tiles separated by spaces or commas
+-- Format: Each line is a row, tiles separated by spaces
 -- Example:
 --   g:0 g:1 g:2
 --   w:0 g:1 s:2
@@ -134,7 +134,7 @@ function map.loadFromString(str)
   -- First pass: determine width
   for _, line in ipairs(lines) do
     local count = 0
-    for _ in line:gmatch("[^%s,]+") do
+    for _ in line:gmatch("[^%s]+") do
       count = count + 1
     end
     width = math.max(width, count)
@@ -145,7 +145,7 @@ function map.loadFromString(str)
   -- Second pass: parse tiles
   for y, line in ipairs(lines) do
     local x = 1
-    for tileStr in line:gmatch("[^%s,]+") do
+    for tileStr in line:gmatch("[^%s]+") do
       local tile = map.parseTileString(tileStr)
       if tile then
         newMap:setTile(x, y, tile)

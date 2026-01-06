@@ -28,7 +28,7 @@ type:hauteur type:hauteur type:hauteur
 ```
 
 - Chaque ligne représente une rangée de tuiles (axe Y)
-- Les tuiles sur une ligne sont séparées par des espaces ou des virgules
+- Les tuiles sur une ligne sont séparées par des espaces (simples ou multiples)
 - Les lignes vides sont ignorées
 - Les commentaires commencent par `#` ou `--`
 
@@ -126,11 +126,10 @@ s:2:type=rock s:3:type=peak g:1
 
 ### Espacement
 
-Les tuiles peuvent être séparées par:
-- Des espaces simples: `g:0 w:-1 s:2`
-- Des espaces multiples: `g:0    w:-1    s:2`
-- Des virgules: `g:0,w:-1,s:2`
-- Mélange: `g:0, w:-1  s:2`
+Les tuiles sont séparées par des espaces (un ou plusieurs):
+- Espaces simples: `g:0 w:-1 s:2`
+- Espaces multiples: `g:0    w:-1    s:2`
+- Espacement mixte: `g:0  w:-1      s:2`
 
 ### Commentaires
 
