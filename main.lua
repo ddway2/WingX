@@ -10,6 +10,36 @@ local renderMode = 'block'  -- 'block' or 'flat'
 local cameraOffset = {x = 0, y = 0}
 local font
 
+-- Available maps
+local maps = {
+  {name = "Test 8x8", file = "maps/test.map"},
+  {name = "Island 32x32", file = "maps/island_32x32.map"},
+  {name = "Terrain 32x32", file = "maps/terrain_32x32.map"},
+  {name = "Island 64x64", file = "maps/island_64x64.map"},
+  {name = "Terrain 64x64", file = "maps/terrain_64x64.map"},
+  {name = "City 64x64", file = "maps/city_64x64.map"},
+  {name = "Checkerboard 64x64", file = "maps/checkerboard_64x64.map"},
+}
+local currentMapIndex = 1
+
+-- Load a map by index
+function loadMap(index)
+  currentMapIndex = index
+  local mapInfo = maps[currentMapIndex]
+
+  print('Loading map: ' .. mapInfo.name .. ' (' .. mapInfo.file .. ')')
+  gameMap = iso3d.map.loadFromFile(mapInfo.file)
+  gameMap:setTileset(tileset)
+
+  -- Reset camera to center
+  local screenWidth = love.graphics.getWidth()
+  local screenHeight = love.graphics.getHeight()
+  cameraOffset.x = screenWidth / 2
+  cameraOffset.y = screenHeight / 4
+
+  print('Map loaded: ' .. gameMap.width .. 'x' .. gameMap.height)
+end
+
 function love.load()
   print('WingX Isometric Map Demo started!')
   print('iso3d version: ' .. iso3d.getVersion())
@@ -24,31 +54,25 @@ function love.load()
     debug = false  -- Set to true to see tile coordinates
   })
 
-  -- Load tileset and map
+  -- Load tileset
   tileset = iso3d.tileset.loadFromFile('tilesets/simple.lua')
-  gameMap = iso3d.map.loadFromFile('maps/test.map')
-
-  -- Associate tileset with map
-  gameMap:setTileset(tileset)
-
-  -- Center camera
-  local screenWidth = love.graphics.getWidth()
-  local screenHeight = love.graphics.getHeight()
-  cameraOffset.x = screenWidth / 2
-  cameraOffset.y = screenHeight / 4
+  print('Tileset: ' .. tileset.name)
 
   -- Load font
   font = love.graphics.newFont(14)
   love.graphics.setFont(font)
 
-  print('Map loaded: ' .. gameMap.width .. 'x' .. gameMap.height)
-  print('Tileset: ' .. tileset.name)
+  -- Load initial map
+  loadMap(currentMapIndex)
+
   print('')
   print('Controls:')
   print('  Arrow keys: Move camera')
   print('  Space: Toggle render mode (block/flat)')
   print('  D: Toggle debug mode')
   print('  R: Reset camera')
+  print('  1-7: Load different maps')
+  print('  N/P: Next/Previous map')
 end
 
 function love.update(dt)
@@ -95,6 +119,26 @@ function love.keypressed(key)
     cameraOffset.y = screenHeight / 4
     print('Camera reset')
   end
+
+  -- Map selection with number keys (1-7)
+  if key >= '1' and key <= '7' then
+    local mapNum = tonumber(key)
+    if mapNum <= #maps then
+      loadMap(mapNum)
+    end
+  end
+
+  -- Next map
+  if key == 'n' then
+    local nextIndex = (currentMapIndex % #maps) + 1
+    loadMap(nextIndex)
+  end
+
+  -- Previous map
+  if key == 'p' then
+    local prevIndex = ((currentMapIndex - 2) % #maps) + 1
+    loadMap(prevIndex)
+  end
 end
 
 function love.draw()
@@ -114,7 +158,7 @@ function love.draw()
   love.graphics.print('iso3d v' .. iso3d.getVersion(), 10, uiY)
   uiY = uiY + 20
 
-  love.graphics.print('Map: ' .. gameMap.width .. 'x' .. gameMap.height, 10, uiY)
+  love.graphics.print('Map: ' .. maps[currentMapIndex].name .. ' (' .. gameMap.width .. 'x' .. gameMap.height .. ')', 10, uiY)
   uiY = uiY + 20
 
   love.graphics.print('Render mode: ' .. renderMode, 10, uiY)
@@ -134,6 +178,10 @@ function love.draw()
   love.graphics.print('  D: Toggle debug', 10, uiY)
   uiY = uiY + 18
   love.graphics.print('  R: Reset camera', 10, uiY)
+  uiY = uiY + 18
+  love.graphics.print('  1-7: Select map', 10, uiY)
+  uiY = uiY + 18
+  love.graphics.print('  N/P: Next/Prev map', 10, uiY)
 
   -- Tile legend
   uiY = uiY + 30

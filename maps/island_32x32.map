@@ -1,0 +1,35 @@
+# Island Map 32x32 - Island surrounded by water
+# Types: g=grass, w=water, s=stone, d=dirt, n=sand
+
+w:0 w:0 w:0 w:0 w:0 w:0 w:0 w:0 w:0 n:0 w:0 w:0 w:0 w:0 n:0 n:0 w:0 n:0 n:0 w:0 w:0 w:0 n:0 n:0 w:0 w:0 w:0 w:0 n:0 w:0 w:0 w:0
+w:0 w:0 n:0 w:0 w:0 w:0 w:0 w:0 n:0 w:0 w:0 n:0 w:0 w:0 w:0 n:0 n:0 w:0 n:0 w:0 n:0 n:0 n:0 w:0 n:0 w:0 n:0 n:0 w:0 w:0 w:0 w:0
+w:0 w:0 w:0 n:0 n:0 w:0 w:0 w:0 w:0 w:0 n:0 w:0 w:0 n:0 n:0 w:0 n:0 w:0 w:0 n:0 n:0 w:0 w:0 w:0 w:0 w:0 w:0 n:0 w:0 w:0 w:0 w:0
+w:0 w:0 w:0 w:0 w:0 w:0 w:0 w:0 w:0 w:0 n:0 n:0 n:0 n:0 w:0 n:0 n:0 n:0 n:0 w:0 n:0 n:0 n:0 w:0 n:0 w:0 n:0 n:0 w:0 n:0 w:0 w:0
+w:0 n:0 w:0 w:0 w:0 w:0 n:0 n:0 n:0 n:0 n:0 n:0 n:0 n:0 g:0 n:0 n:0 n:0 n:0 n:0 n:0 n:0 n:0 n:0 n:0 n:0 w:0 w:0 w:0 w:0 w:0 w:0
+w:0 w:0 w:0 n:0 n:0 w:0 w:0 n:0 n:0 n:0 n:0 n:0 n:0 g:0 n:0 g:1 g:0 g:0 n:0 n:0 n:0 n:0 n:0 w:0 n:0 n:0 w:0 w:0 w:0 w:0 w:0 w:0
+n:0 w:0 w:0 w:0 n:0 w:0 n:0 n:0 n:0 n:0 g:1 n:0 n:0 g:1 g:0 g:0 g:0 g:0 g:0 g:0 n:0 g:0 g:0 n:0 n:0 n:0 n:0 w:0 n:0 w:0 n:0 w:0
+w:0 n:0 n:0 n:0 w:0 n:0 n:0 n:0 g:1 g:1 n:0 g:0 g:1 g:0 g:0 g:1 g:1 g:1 g:1 g:0 g:0 g:0 g:1 g:0 g:1 n:0 n:0 n:0 n:0 n:0 n:0 w:0
+n:0 w:0 w:0 w:0 n:0 n:0 n:0 n:0 n:0 n:0 g:0 g:1 g:1 g:1 g:0 g:0 g:0 g:1 g:0 g:0 g:0 g:0 g:0 n:0 n:0 g:0 n:0 n:0 w:0 w:0 w:0 w:0
+w:0 n:0 w:0 n:0 n:0 n:0 g:0 n:0 g:1 g:0 g:0 g:1 g:1 g:1 g:1 g:0 g:0 g:0 g:1 g:0 g:1 g:0 g:0 g:1 g:0 n:0 n:0 n:0 n:0 n:0 w:0 w:0
+w:0 w:0 n:0 w:0 n:0 n:0 g:1 g:1 g:0 g:0 g:0 g:0 g:0 g:0 g:2 g:1 g:0 g:2 g:1 g:2 g:0 g:1 g:0 g:0 g:0 n:0 n:0 n:0 n:0 n:0 n:0 w:0
+w:0 n:0 w:0 n:0 n:0 n:0 g:0 g:0 g:0 g:0 g:0 g:0 g:2 g:1 g:0 g:0 g:2 g:1 g:2 g:0 g:0 g:1 g:0 g:0 g:0 g:1 g:0 n:0 n:0 w:0 n:0 w:0
+n:0 n:0 n:0 n:0 n:0 g:0 g:1 g:0 g:0 g:1 g:0 g:0 g:1 g:0 g:2 g:1 g:0 g:0 g:2 g:1 g:0 g:0 g:1 g:0 g:0 g:0 n:0 n:0 n:0 w:0 w:0 w:0
+n:0 w:0 n:0 n:0 n:0 n:0 g:0 g:0 g:0 g:1 g:2 g:1 g:1 g:1 g:0 g:2 g:1 g:2 g:0 g:2 g:1 g:2 g:2 g:0 g:0 g:0 g:0 g:1 n:0 w:0 n:0 w:0
+n:0 n:0 n:0 n:0 n:0 n:0 g:1 g:1 g:0 g:0 g:2 g:0 g:1 g:2 g:0 g:0 g:1 g:2 g:0 g:2 g:0 g:0 g:0 g:1 g:0 g:0 n:0 g:1 g:0 n:0 w:0 w:0
+w:0 w:0 n:0 n:0 n:0 g:0 g:1 g:0 g:0 g:0 g:0 g:2 g:1 g:0 g:2 g:1 g:0 g:2 g:1 g:1 g:1 g:1 g:0 g:0 g:1 g:1 g:0 g:0 n:0 n:0 n:0 n:0
+w:0 w:0 n:0 n:0 n:0 g:1 n:0 g:0 g:0 g:0 g:0 g:0 g:0 g:1 g:1 g:2 g:0 g:2 g:0 g:0 g:1 g:1 g:0 g:0 g:0 g:1 g:1 n:0 n:0 n:0 w:0 n:0
+n:0 w:0 n:0 n:0 n:0 g:0 g:0 g:0 g:0 g:0 g:0 g:1 g:2 g:2 g:1 g:2 g:2 g:0 g:0 g:0 g:0 g:1 g:0 g:2 g:0 g:0 g:1 n:0 n:0 n:0 n:0 n:0
+w:0 n:0 n:0 n:0 n:0 n:0 n:0 g:1 g:1 g:0 g:0 g:1 g:0 g:1 g:1 g:1 g:2 g:1 g:1 g:0 g:1 g:0 g:0 g:0 g:0 g:1 g:0 n:0 n:0 n:0 n:0 n:0
+w:0 n:0 n:0 n:0 g:0 g:0 g:0 g:1 g:0 g:0 g:0 g:0 g:1 g:2 g:2 g:1 g:2 g:2 g:0 g:2 g:1 g:0 g:2 g:0 g:1 g:0 g:0 n:0 n:0 n:0 n:0 n:0
+w:0 w:0 w:0 n:0 n:0 n:0 g:1 g:1 g:0 g:0 g:1 g:2 g:0 g:1 g:0 g:0 g:2 g:2 g:2 g:2 g:1 g:0 g:0 g:1 g:0 g:0 n:0 n:0 n:0 n:0 w:0 w:0
+n:0 w:0 n:0 n:0 n:0 n:0 g:0 g:0 g:0 g:0 g:0 g:2 g:2 g:0 g:2 g:0 g:2 g:1 g:2 g:0 g:0 g:1 g:0 g:0 g:0 g:0 n:0 n:0 n:0 n:0 w:0 n:0
+w:0 w:0 w:0 w:0 n:0 n:0 n:0 g:0 g:1 g:0 g:0 g:0 g:0 g:0 g:0 g:1 g:0 g:0 g:1 g:2 g:2 g:0 g:0 g:0 g:1 n:0 g:0 n:0 w:0 n:0 w:0 n:0
+w:0 w:0 w:0 w:0 n:0 n:0 n:0 n:0 g:0 g:0 g:1 g:0 g:0 g:0 g:1 g:0 g:1 g:0 g:0 g:1 g:0 g:0 g:0 g:1 n:0 g:0 g:0 n:0 n:0 n:0 w:0 w:0
+n:0 n:0 n:0 w:0 w:0 w:0 n:0 n:0 g:0 g:0 g:0 g:0 g:1 g:0 g:1 g:0 g:0 g:1 g:0 g:0 g:0 g:0 g:0 g:0 g:0 n:0 n:0 n:0 n:0 n:0 w:0 w:0
+w:0 w:0 w:0 w:0 w:0 n:0 n:0 n:0 n:0 g:0 n:0 g:0 g:0 g:0 g:1 g:0 g:0 g:0 g:0 g:1 g:0 g:0 g:1 n:0 n:0 n:0 n:0 w:0 n:0 n:0 w:0 w:0
+w:0 n:0 w:0 w:0 n:0 n:0 w:0 n:0 n:0 n:0 n:0 n:0 g:1 g:0 g:0 g:1 g:0 g:1 g:1 n:0 g:1 g:0 n:0 n:0 n:0 n:0 n:0 n:0 n:0 w:0 n:0 n:0
+w:0 w:0 w:0 n:0 n:0 w:0 n:0 n:0 n:0 n:0 n:0 n:0 n:0 n:0 n:0 n:0 g:1 g:0 g:0 n:0 g:0 n:0 n:0 n:0 w:0 n:0 n:0 n:0 w:0 w:0 w:0 w:0
+w:0 n:0 w:0 n:0 w:0 n:0 n:0 w:0 n:0 n:0 w:0 n:0 n:0 n:0 n:0 n:0 g:0 n:0 n:0 n:0 n:0 n:0 n:0 n:0 w:0 n:0 w:0 w:0 w:0 w:0 w:0 n:0
+w:0 w:0 w:0 n:0 w:0 w:0 w:0 w:0 w:0 w:0 n:0 n:0 n:0 n:0 w:0 n:0 n:0 n:0 n:0 n:0 n:0 n:0 w:0 w:0 n:0 n:0 w:0 w:0 n:0 w:0 w:0 w:0
+w:0 w:0 w:0 w:0 n:0 w:0 n:0 w:0 n:0 w:0 n:0 n:0 w:0 w:0 n:0 n:0 n:0 n:0 n:0 w:0 w:0 w:0 w:0 n:0 w:0 w:0 n:0 w:0 w:0 w:0 w:0 w:0
+w:0 w:0 w:0 w:0 w:0 w:0 n:0 w:0 w:0 w:0 w:0 w:0 n:0 w:0 w:0 w:0 n:0 w:0 n:0 w:0 n:0 n:0 w:0 w:0 w:0 w:0 n:0 w:0 w:0 w:0 n:0 w:0
