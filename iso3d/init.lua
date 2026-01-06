@@ -1,11 +1,15 @@
 -- iso3d - Isometric 3D library for Love2D
--- Version: 0.1.0
+-- Version: 0.2.0
 
 local iso3d = {
-  _VERSION = '0.1.0',
+  _VERSION = '0.2.0',
   _DESCRIPTION = 'Isometric 3D rendering library for Love2D',
   _LICENSE = 'MIT'
 }
+
+-- Load submodules
+local mapPath = (...):gsub('%.init$', '') .. '.map'
+iso3d.map = require(mapPath)
 
 -- Module private variables
 local private = {}
