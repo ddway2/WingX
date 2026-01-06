@@ -317,6 +317,26 @@ end
 
 iso3d supporte les animations de tuiles avec des séquences d'images.
 
+### Pré-requis des Sprites
+
+**Format:**
+- Format PNG avec transparence (canal alpha)
+- Dimensions recommandées: 64x64 pixels (32x32 minimum, 128x128 maximum)
+- Les sprites sont automatiquement redimensionnés
+
+**Sprites statiques:**
+- Un seul fichier PNG
+- Propriété `color` obligatoire (fallback)
+
+**Sprites animés:**
+- Toutes les frames doivent avoir les **mêmes dimensions**
+- `frameCount` doit correspondre au nombre de fichiers dans `animationFrames`
+- `frameDuration` > 0 (en secondes)
+- 3-8 frames recommandées pour une animation fluide
+- Durée par frame: 0.1s-0.5s selon le type d'animation
+
+**Voir `assets/README.md` pour la documentation complète des pré-requis des sprites.**
+
 ### Définir une tuile animée
 
 Dans votre fichier tileset, définissez les paramètres d'animation :
