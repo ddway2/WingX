@@ -150,41 +150,82 @@ function iso3d.drawTileBlock(x, y, z, height, color, opacity)
     a = a * opacity
   end
 
-  -- Draw left face (darker)
-  love.graphics.setColor(r * 0.7, g * 0.7, b * 0.7, a)
-  local leftFace = {
-    screenX - tw, screenY,              -- Top left
-    screenX, screenY + th,              -- Bottom
-    screenX, screenY + th + blockHeight, -- Bottom with height
-    screenX - tw, screenY + blockHeight  -- Top left with height
-  }
-  love.graphics.polygon('fill', leftFace)
+  if blockHeight >= 0 then
+    -- Positive height: block rises upward
+    -- Draw left face (darker)
+    love.graphics.setColor(r * 0.7, g * 0.7, b * 0.7, a)
+    local leftFace = {
+      screenX - tw, screenY,              -- Top left
+      screenX, screenY + th,              -- Bottom
+      screenX, screenY + th + blockHeight, -- Bottom with height
+      screenX - tw, screenY + blockHeight  -- Top left with height
+    }
+    love.graphics.polygon('fill', leftFace)
 
-  -- Draw right face (medium)
-  love.graphics.setColor(r * 0.85, g * 0.85, b * 0.85, a)
-  local rightFace = {
-    screenX + tw, screenY,              -- Top right
-    screenX, screenY + th,              -- Bottom
-    screenX, screenY + th + blockHeight, -- Bottom with height
-    screenX + tw, screenY + blockHeight  -- Top right with height
-  }
-  love.graphics.polygon('fill', rightFace)
+    -- Draw right face (medium)
+    love.graphics.setColor(r * 0.85, g * 0.85, b * 0.85, a)
+    local rightFace = {
+      screenX + tw, screenY,              -- Top right
+      screenX, screenY + th,              -- Bottom
+      screenX, screenY + th + blockHeight, -- Bottom with height
+      screenX + tw, screenY + blockHeight  -- Top right with height
+    }
+    love.graphics.polygon('fill', rightFace)
 
-  -- Draw top face (lightest)
-  love.graphics.setColor(r, g, b, a)
-  local topFace = {
-    screenX, screenY - th + blockHeight,        -- Top
-    screenX + tw, screenY + blockHeight,        -- Right
-    screenX, screenY + th + blockHeight,        -- Bottom
-    screenX - tw, screenY + blockHeight         -- Left
-  }
-  love.graphics.polygon('fill', topFace)
+    -- Draw top face (lightest)
+    love.graphics.setColor(r, g, b, a)
+    local topFace = {
+      screenX, screenY - th + blockHeight,        -- Top
+      screenX + tw, screenY + blockHeight,        -- Right
+      screenX, screenY + th + blockHeight,        -- Bottom
+      screenX - tw, screenY + blockHeight         -- Left
+    }
+    love.graphics.polygon('fill', topFace)
 
-  -- Draw outlines
-  love.graphics.setColor(0, 0, 0, 0.3)
-  love.graphics.polygon('line', leftFace)
-  love.graphics.polygon('line', rightFace)
-  love.graphics.polygon('line', topFace)
+    -- Draw outlines
+    love.graphics.setColor(0, 0, 0, 0.3)
+    love.graphics.polygon('line', leftFace)
+    love.graphics.polygon('line', rightFace)
+    love.graphics.polygon('line', topFace)
+  else
+    -- Negative height: block sinks downward (hole)
+    -- For holes, we draw the inner faces (reversed orientation)
+    -- Draw left face (darker) - reversed
+    love.graphics.setColor(r * 0.7, g * 0.7, b * 0.7, a)
+    local leftFace = {
+      screenX - tw, screenY,              -- Top left at ground level
+      screenX - tw, screenY - blockHeight, -- Top left at bottom of hole
+      screenX, screenY + th - blockHeight, -- Bottom at bottom of hole
+      screenX, screenY + th                -- Bottom at ground level
+    }
+    love.graphics.polygon('fill', leftFace)
+
+    -- Draw right face (medium) - reversed
+    love.graphics.setColor(r * 0.85, g * 0.85, b * 0.85, a)
+    local rightFace = {
+      screenX + tw, screenY,              -- Top right at ground level
+      screenX + tw, screenY - blockHeight, -- Top right at bottom of hole
+      screenX, screenY + th - blockHeight, -- Bottom at bottom of hole
+      screenX, screenY + th                -- Bottom at ground level
+    }
+    love.graphics.polygon('fill', rightFace)
+
+    -- Draw bottom face (floor of the hole)
+    love.graphics.setColor(r * 0.5, g * 0.5, b * 0.5, a)
+    local bottomFace = {
+      screenX, screenY - th - blockHeight,        -- Top
+      screenX + tw, screenY - blockHeight,        -- Right
+      screenX, screenY + th - blockHeight,        -- Bottom
+      screenX - tw, screenY - blockHeight         -- Left
+    }
+    love.graphics.polygon('fill', bottomFace)
+
+    -- Draw outlines
+    love.graphics.setColor(0, 0, 0, 0.3)
+    love.graphics.polygon('line', leftFace)
+    love.graphics.polygon('line', rightFace)
+    love.graphics.polygon('line', bottomFace)
+  end
 end
 
 -- Draw a sprite on an isometric tile
@@ -253,8 +294,8 @@ function iso3d.drawTile(tile, x, y, tileset, renderMode)
         iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity * 0.8)
         iso3d.drawTileSprite(x, y, blockHeight, sprite, opacity, scale)
       elseif blockHeight < 0 then
-        -- Negative height: block sinks from z=blockHeight to ground (z=0)
-        iso3d.drawTileBlock(x, y, blockHeight, -blockHeight, color, opacity * 0.8)
+        -- Negative height: block sinks below ground (hole)
+        iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity * 0.8)
         iso3d.drawTileSprite(x, y, blockHeight, sprite, opacity, scale)
       else
         -- Height 0: just draw sprite
@@ -273,7 +314,7 @@ function iso3d.drawTile(tile, x, y, tileset, renderMode)
         iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity)
       elseif blockHeight < 0 then
         -- Negative height: block sinks below ground
-        iso3d.drawTileBlock(x, y, blockHeight, -blockHeight, color, opacity)
+        iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity)
       else
         -- Height 0: draw flat diamond
         iso3d.drawTileDiamond(x, y, z, color, opacity)
