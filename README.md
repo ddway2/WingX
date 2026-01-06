@@ -1,90 +1,88 @@
-# WingX - LOVR Project
+# WingX - Love2D Project
 
-Un projet minimal basé sur le moteur LOVR (Lua Open VR) qui affiche "Hello World".
+Un projet minimal basé sur le moteur Love2D qui affiche "Hello World".
 
 ## Description
 
-Ce projet utilise LOVR, un framework Lua pour la réalité virtuelle et les applications 3D. Le projet inclut un exemple minimal qui affiche "Hello World" dans un espace 3D.
+Ce projet utilise Love2D (LÖVE), un framework Lua pour créer des jeux 2D. Le projet inclut un exemple minimal qui affiche "Hello World" avec une animation.
 
 ## Structure du projet
 
 ```
 WingX/
-├── lovr/          # Moteur LOVR (submodule git)
 ├── main.lua       # Point d'entrée de l'application
+├── .gitignore     # Fichiers à ignorer
 └── README.md      # Ce fichier
 ```
 
 ## Installation
 
-### 1. Cloner le projet avec les submodules
+### 1. Cloner le projet
 
 ```bash
-git clone --recursive <url-du-repo>
+git clone <url-du-repo>
 cd WingX
 ```
 
-Si vous avez déjà cloné le projet sans `--recursive`, initialisez les submodules :
+### 2. Installer Love2D
 
+#### Windows
+Téléchargez l'installeur depuis le site officiel :
+- **Site officiel** : https://love2d.org/
+- Téléchargez la dernière version pour Windows
+- Installez et ajoutez Love2D à votre PATH (optionnel)
+
+#### macOS
 ```bash
-git submodule update --init --recursive
+brew install love
 ```
 
-### 2. Installer LOVR
-
-#### Option A : Utiliser un binaire pré-compilé
-
-Téléchargez LOVR depuis le site officiel :
-- **Site officiel** : https://lovr.org/download
-- Téléchargez la version correspondant à votre système d'exploitation
-
-#### Option B : Compiler LOVR depuis les sources
-
-Si vous souhaitez compiler LOVR depuis le submodule inclus :
-
+#### Linux (Ubuntu/Debian)
 ```bash
-cd lovr
-# Suivez les instructions de compilation sur : https://lovr.org/docs/Building
+sudo apt-get install love
 ```
 
-**Prérequis pour la compilation :**
-- CMake 3.1+
-- Compilateur C/C++ (GCC, Clang, MSVC)
-- Dépendances système (varient selon l'OS)
+#### Linux (Arch)
+```bash
+sudo pacman -S love
+```
 
 ## Utilisation
 
 ### Lancer l'application
 
-Une fois LOVR installé, lancez l'application depuis la racine du projet :
+Une fois Love2D installé, lancez l'application depuis la racine du projet :
 
 ```bash
-lovr .
+love .
 ```
 
-Vous devriez voir "Hello World" affiché dans l'espace 3D !
+Vous devriez voir une fenêtre s'ouvrir avec "Hello World" affiché au centre et un cercle animé en dessous !
 
 ### Ce que fait l'application
 
-- Affiche le texte "Hello World" dans l'espace 3D
-- Dessine un petit cube pour rendre la scène plus intéressante
+- Affiche le texte "Hello World" centré à l'écran
+- Dessine un cercle bleu pulsant pour l'animation
 - Affiche des messages dans la console au démarrage
+- Définit le titre de la fenêtre
 
 ## Développement
 
 Le fichier `main.lua` contient le code principal de l'application. Les fonctions principales sont :
 
-- `lovr.load()` : Appelée au démarrage de l'application
-- `lovr.draw(pass)` : Appelée à chaque frame pour dessiner la scène
+- `love.load()` : Appelée au démarrage de l'application (initialisation)
+- `love.update(dt)` : Appelée à chaque frame pour mettre à jour la logique (dt = delta time)
+- `love.draw()` : Appelée à chaque frame pour dessiner à l'écran
 
-Pour modifier l'application, éditez simplement `main.lua` et relancez avec `lovr .`
+Pour modifier l'application, éditez simplement `main.lua` et relancez avec `love .`
 
 ## Ressources
 
-- **Documentation LOVR** : https://lovr.org/docs
-- **GitHub LOVR** : https://github.com/bjornbytes/lovr
-- **Communauté** : https://lovr.org/community
+- **Documentation Love2D** : https://love2d.org/wiki/Main_Page
+- **GitHub Love2D** : https://github.com/love2d/love
+- **Forums** : https://love2d.org/forums/
+- **Discord** : https://discord.gg/rhUets9
 
 ## Licence
 
-Ce projet est un exemple minimal. Consultez la licence de LOVR dans le dossier `lovr/` pour plus d'informations sur le moteur.
+Ce projet est un exemple minimal. Love2D est distribué sous licence zlib/libpng.
