@@ -1,0 +1,8 @@
+# Demo 3D - Map 4x4 pour démontrer les blocs 3D
+# Cette map forme une pyramide à étages pour montrer les hauteurs
+# Hauteurs utilisées: -2, -1, 0, 1, 2, 3
+
+w:-2 w:-1 w:-1 w:-2
+w:-1 g:0  g:1  w:-1
+w:-1 g:1  s:2  w:-1
+w:-2 w:-1 w:-1 w:-2

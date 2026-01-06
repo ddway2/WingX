@@ -12,6 +12,8 @@ local font
 
 -- Available maps
 local maps = {
+  {name = "Demo 3D 4x4", file = "maps/demo_3d.map"},
+  {name = "Stairs 3D 4x4", file = "maps/stairs_3d.map"},
   {name = "Test 8x8", file = "maps/test.map"},
   {name = "Island 32x32", file = "maps/island_32x32.map"},
   {name = "Terrain 32x32", file = "maps/terrain_32x32.map"},
@@ -74,7 +76,7 @@ function love.load()
   print('  Space: Toggle render mode (block/flat)')
   print('  D: Toggle debug mode')
   print('  R: Reset camera')
-  print('  1-7: Load different maps')
+  print('  1-9: Load different maps')
   print('  N/P: Next/Previous map')
 end
 
@@ -128,8 +130,8 @@ function love.keypressed(key)
     print('Camera reset')
   end
 
-  -- Map selection with number keys (1-7)
-  if key >= '1' and key <= '7' then
+  -- Map selection with number keys (1-9)
+  if key >= '1' and key <= '9' then
     local mapNum = tonumber(key)
     if mapNum <= #maps then
       loadMap(mapNum)
@@ -187,7 +189,7 @@ function love.draw()
   uiY = uiY + 18
   love.graphics.print('  R: Reset camera', 10, uiY)
   uiY = uiY + 18
-  love.graphics.print('  1-7: Select map', 10, uiY)
+  love.graphics.print('  1-9: Select map', 10, uiY)
   uiY = uiY + 18
   love.graphics.print('  N/P: Next/Prev map', 10, uiY)
 
