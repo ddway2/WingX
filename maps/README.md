@@ -277,7 +277,23 @@ file:close()
 
 Le projet contient plusieurs maps d'exemple:
 
+### Maps de démonstration 3D
+
+- **demo_3d.map** (4x4) - Structure pyramidale montrant les blocs 3D avec différentes hauteurs
+- **stairs_3d.map** (4x4) - Escalier diagonal utilisant toute la plage de hauteurs (-2 à 3)
+
+Ces petites maps sont idéales pour:
+- Comprendre le rendu des blocs 3D
+- Voir l'effet du shading sur les faces (70%, 85%, 100%)
+- Tester le tri en profondeur
+- Observer la progression visuelle des hauteurs
+
+### Maps de test
+
 - **test.map** (8x8) - Petit terrain de test avec tous les types de hauteurs
+
+### Maps procédurales
+
 - **island_32x32.map** (32x32) - Île avec plage et montagne centrale
 - **island_64x64.map** (64x64) - Grande île détaillée
 - **terrain_32x32.map** (32x32) - Terrain varié avec rivière
