@@ -75,6 +75,99 @@ Retourne la version de la librairie.
 #### `iso3d.debug()`
 Affiche les informations de debug dans la console.
 
+## Gestion des Tilesets
+
+Les tilesets définissent les types de tuiles avec leurs propriétés visuelles, assets et paramètres d'affichage.
+
+### Format de fichier Tileset
+
+Les fichiers `.lua` dans `tilesets/` retournent une table avec les définitions :
+
+```lua
+return {
+  name = "Mon Tileset",
+
+  metadata = {
+    author = "Auteur",
+    version = "1.0"
+  },
+
+  tiles = {
+    g = {
+      name = "Grass",
+      description = "Herbe verte",
+
+      -- Assets
+      sprite = "assets/tiles/grass.png",
+      spriteVariants = {
+        "assets/tiles/grass_1.png",
+        "assets/tiles/grass_2.png",
+      },
+      color = {0.2, 0.8, 0.3, 1},  -- RGBA
+
+      -- Affichage
+      heightOffset = 0,
+      scale = 1.0,
+      opacity = 1.0,
+      glow = false,
+
+      -- Animation
+      animated = false,
+      frameCount = 1,
+      frameDuration = 0.1,
+
+      -- Gameplay
+      walkable = true,
+      transparent = false,
+      tags = {"terrain", "natural"},
+
+      -- Paramètres custom
+      custom = {
+        fertility = 0.8
+      }
+    }
+  }
+}
+```
+
+### Charger un Tileset
+
+```lua
+local tilesetModule = require('iso3d.tileset')
+
+-- Depuis un fichier
+local tileset = tilesetModule.loadFromFile('tilesets/basic.lua')
+
+-- Créer le tileset par défaut
+local tileset = tilesetModule.createDefault()
+
+-- Obtenir une définition de tuile
+local grassDef = tileset:getDefinition('g')
+print(grassDef.name, grassDef.color)
+```
+
+### Associer un Tileset à une Map
+
+```lua
+local mapModule = require('iso3d.map')
+local tilesetModule = require('iso3d.tileset')
+
+-- Charger tileset et map
+local tileset = tilesetModule.loadFromFile('tilesets/basic.lua')
+local gameMap = mapModule.loadFromFile('maps/test.map')
+
+-- Associer le tileset à la map
+gameMap:setTileset(tileset)
+
+-- Obtenir la définition d'une tuile
+local tile = gameMap:getTile(2, 3)
+local tileDef = gameMap:getTileDefinition(tile)
+if tileDef then
+  print("Couleur:", tileDef.color)
+  print("Marchable:", tileDef.walkable)
+end
+```
+
 ## Gestion des Maps
 
 iso3d inclut un système de gestion de maps avec support de tuiles et hauteurs (0-3 niveaux).
@@ -150,22 +243,39 @@ local mapString = gameMap:toString()
 
 ```lua
 local iso3d = require('iso3d')
-local mapModule = require('iso3d.map')
 
 local gameMap
+local tileset
 
 function love.load()
-  iso3d.init({ debug = true })
-  gameMap = mapModule.loadFromFile('maps/test.map')
+  -- Initialiser iso3d
+  iso3d.init({
+    tileWidth = 64,
+    tileHeight = 32,
+    debug = true
+  })
+
+  -- Charger le tileset et la map
+  tileset = iso3d.tileset.loadFromFile('tilesets/basic.lua')
+  gameMap = iso3d.map.loadFromFile('maps/test.map')
+
+  -- Associer le tileset à la map
+  gameMap:setTileset(tileset)
 end
 
 function love.draw()
   love.graphics.translate(400, 300) -- Centre l'origine
 
-  -- Dessiner la map
+  -- Dessiner la map avec les couleurs du tileset
   gameMap:each(function(x, y, tile)
-    local screenX, screenY = iso3d.toScreen(x, y, tile.height)
-    iso3d.drawPoint(x, y, tile.height, {1, 1, 1, 1})
+    local tileDef = gameMap:getTileDefinition(tile)
+    local color = tileDef and tileDef.color or {1, 1, 1, 1}
+
+    -- Appliquer le heightOffset du tileset
+    local heightOffset = tileDef and tileDef.heightOffset or 0
+    local z = tile.height * 10 + heightOffset
+
+    iso3d.drawPoint(x, y, z, color)
   end)
 end
 ```
@@ -179,6 +289,10 @@ end
 - [x] Système de maps avec format textuel
 - [x] Support de tuiles avec hauteurs (0-3 niveaux)
 - [x] Paramètres personnalisables par tuile
+- [x] Système de tilesets pour définir les types de tuiles
+- [x] Propriétés visuelles : sprites, couleurs, animations
+- [x] Propriétés gameplay : walkable, transparent, tags
+- [x] Paramètres d'affichage : heightOffset, scale, opacity, glow
 - [ ] Rendu de tuiles avec sprites/textures
 - [ ] Dessin de formes 3D (cubes, plans)
 - [ ] Système de caméra

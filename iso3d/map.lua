@@ -8,13 +8,32 @@ map.Map = {}
 map.Map.__index = map.Map
 
 -- Create a new map
-function map.Map.new(width, height)
+function map.Map.new(width, height, tileset)
   local m = setmetatable({}, map.Map)
   m.width = width or 0
   m.height = height or 0
   m.tiles = {}
   m.metadata = {}
+  m.tileset = tileset or nil  -- Optional tileset reference
   return m
+end
+
+-- Set the tileset for this map
+function map.Map:setTileset(tileset)
+  self.tileset = tileset
+end
+
+-- Get the tileset for this map
+function map.Map:getTileset()
+  return self.tileset
+end
+
+-- Get the tile definition from the tileset for a tile
+function map.Map:getTileDefinition(tile)
+  if self.tileset and tile then
+    return self.tileset:getDefinition(tile.type)
+  end
+  return nil
 end
 
 -- Set a tile at position (x, y)
