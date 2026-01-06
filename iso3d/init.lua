@@ -187,6 +187,36 @@ function iso3d.drawTileBlock(x, y, z, height, color, opacity)
   love.graphics.polygon('line', topFace)
 end
 
+-- Draw a sprite on an isometric tile
+function iso3d.drawTileSprite(x, y, z, sprite, opacity, scale)
+  if not sprite then return end
+
+  local screenX, screenY = iso3d.toScreen(x, y, z)
+  local tw = iso3d.config.tileWidth
+  local th = iso3d.config.tileHeight
+
+  opacity = opacity or 1.0
+  scale = scale or 1.0
+
+  love.graphics.setColor(1, 1, 1, opacity)
+
+  -- Calculate sprite dimensions to fit the tile
+  local spriteWidth = sprite:getWidth()
+  local spriteHeight = sprite:getHeight()
+
+  -- Scale the sprite to fit the tile width
+  local spriteScale = (tw / spriteWidth) * scale
+
+  -- Draw sprite centered on the tile
+  love.graphics.draw(
+    sprite,
+    screenX, screenY - (spriteHeight * spriteScale / 2) + th/2,
+    0,  -- rotation
+    spriteScale, spriteScale,
+    spriteWidth / 2, spriteHeight / 2  -- origin
+  )
+end
+
 -- Draw a single tile with tileset properties
 function iso3d.drawTile(tile, x, y, tileset, renderMode)
   if not tile then return end
@@ -208,18 +238,39 @@ function iso3d.drawTile(tile, x, y, tileset, renderMode)
   -- Calculate Z position
   local z = (tile.height or 0) * 10 + heightOffset
 
-  -- Render based on mode
-  if renderMode == 'flat' then
-    iso3d.drawTileDiamond(x, y, z, color, opacity)
-  else
-    -- Block rendering with height
-    local blockHeight = (tile.height or 0) * 10
-    if blockHeight ~= 0 then
-      -- For negative heights, draw block below ground level
-      iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity)
+  -- Check if we have a sprite to render
+  local sprite = tileDef and tileDef:getCurrentSprite()
+
+  if sprite then
+    -- Render with sprite
+    if renderMode == 'flat' then
+      iso3d.drawTileSprite(x, y, z, sprite, opacity, scale)
     else
-      -- Height 0: draw flat diamond
+      -- Block rendering with height
+      local blockHeight = (tile.height or 0) * 10
+      if blockHeight ~= 0 then
+        -- For blocks with height, draw colored block first, then sprite on top
+        iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity * 0.8)
+        iso3d.drawTileSprite(x, y, blockHeight, sprite, opacity, scale)
+      else
+        -- Height 0: just draw sprite
+        iso3d.drawTileSprite(x, y, z, sprite, opacity, scale)
+      end
+    end
+  else
+    -- Render with color (fallback when no sprite)
+    if renderMode == 'flat' then
       iso3d.drawTileDiamond(x, y, z, color, opacity)
+    else
+      -- Block rendering with height
+      local blockHeight = (tile.height or 0) * 10
+      if blockHeight ~= 0 then
+        -- For negative heights, draw block below ground level
+        iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity)
+      else
+        -- Height 0: draw flat diamond
+        iso3d.drawTileDiamond(x, y, z, color, opacity)
+      end
     end
   end
 

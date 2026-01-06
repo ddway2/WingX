@@ -58,6 +58,9 @@ function love.load()
   tileset = iso3d.tileset.loadFromFile('tilesets/simple.lua')
   print('Tileset: ' .. tileset.name)
 
+  -- Load sprites (if available)
+  tileset:loadSprites()
+
   -- Load font
   font = love.graphics.newFont(14)
   love.graphics.setFont(font)
@@ -76,6 +79,11 @@ function love.load()
 end
 
 function love.update(dt)
+  -- Update tileset animations
+  if tileset then
+    tileset:updateAnimations(dt)
+  end
+
   -- Camera movement
   local moveSpeed = 200 * dt
 

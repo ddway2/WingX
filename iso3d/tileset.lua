@@ -28,6 +28,12 @@ function tileset.TileDefinition.new(id, def)
   td.animated = def.animated or false
   td.frameCount = def.frameCount or 1
   td.frameDuration = def.frameDuration or 0.1
+  td.animationFrames = def.animationFrames or {}  -- Array of sprite paths for animation
+
+  -- Internal animation state
+  td._currentFrame = 1
+  td._animationTimer = 0
+  td._loadedSprites = {}  -- Cache of loaded images
 
   -- Gameplay/logic parameters
   td.walkable = def.walkable ~= false  -- Default: walkable
@@ -38,6 +44,58 @@ function tileset.TileDefinition.new(id, def)
   td.custom = def.custom or {}
 
   return td
+end
+
+-- Load sprite for this tile definition
+function tileset.TileDefinition:loadSprite()
+  if self.sprite and not self._loadedSprites.main then
+    local success, image = pcall(love.graphics.newImage, self.sprite)
+    if success then
+      self._loadedSprites.main = image
+    else
+      print("Warning: Failed to load sprite: " .. self.sprite)
+    end
+  end
+end
+
+-- Load animation frames for this tile definition
+function tileset.TileDefinition:loadAnimationFrames()
+  if self.animated and #self.animationFrames > 0 then
+    for i, framePath in ipairs(self.animationFrames) do
+      if not self._loadedSprites[i] then
+        local success, image = pcall(love.graphics.newImage, framePath)
+        if success then
+          self._loadedSprites[i] = image
+        else
+          print("Warning: Failed to load animation frame: " .. framePath)
+        end
+      end
+    end
+  end
+end
+
+-- Update animation state
+function tileset.TileDefinition:updateAnimation(dt)
+  if not self.animated or self.frameCount <= 1 then
+    return
+  end
+
+  self._animationTimer = self._animationTimer + dt
+
+  if self._animationTimer >= self.frameDuration then
+    self._animationTimer = self._animationTimer - self.frameDuration
+    self._currentFrame = (self._currentFrame % self.frameCount) + 1
+  end
+end
+
+-- Get current animation frame sprite
+function tileset.TileDefinition:getCurrentSprite()
+  if self.animated and #self._loadedSprites > 0 then
+    return self._loadedSprites[self._currentFrame] or self._loadedSprites[1]
+  elseif self._loadedSprites.main then
+    return self._loadedSprites.main
+  end
+  return nil
 end
 
 -- Tileset structure
@@ -71,6 +129,23 @@ end
 function tileset.Tileset:each(callback)
   for id, def in pairs(self.definitions) do
     callback(id, def)
+  end
+end
+
+-- Load all sprites for this tileset
+function tileset.Tileset:loadSprites()
+  for id, def in pairs(self.definitions) do
+    def:loadSprite()
+    def:loadAnimationFrames()
+  end
+end
+
+-- Update all animations in this tileset
+function tileset.Tileset:updateAnimations(dt)
+  for id, def in pairs(self.definitions) do
+    if def.animated then
+      def:updateAnimation(dt)
+    end
   end
 end
 

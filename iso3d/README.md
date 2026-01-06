@@ -313,6 +313,109 @@ function love.draw()
 end
 ```
 
+## Animations
+
+iso3d supporte les animations de tuiles avec des séquences d'images.
+
+### Définir une tuile animée
+
+Dans votre fichier tileset, définissez les paramètres d'animation :
+
+```lua
+w = {
+  name = "Water",
+
+  -- Animation activée
+  animated = true,
+  frameCount = 4,           -- Nombre de frames dans l'animation
+  frameDuration = 0.3,      -- Durée de chaque frame (secondes)
+
+  -- Chemins vers les images de l'animation
+  animationFrames = {
+    "assets/tiles/water_frame1.png",
+    "assets/tiles/water_frame2.png",
+    "assets/tiles/water_frame3.png",
+    "assets/tiles/water_frame4.png",
+  },
+
+  -- Couleur de fallback si les sprites ne chargent pas
+  color = {0.2, 0.4, 0.9, 1},
+
+  walkable = false
+}
+```
+
+### Mettre à jour les animations
+
+Dans votre boucle de jeu Love2D, appelez `updateAnimations` :
+
+```lua
+function love.update(dt)
+  -- Mettre à jour les animations du tileset
+  if tileset then
+    tileset:updateAnimations(dt)
+  end
+end
+```
+
+### Charger les sprites
+
+Chargez les sprites après avoir chargé le tileset :
+
+```lua
+function love.load()
+  -- Charger le tileset
+  tileset = iso3d.tileset.loadFromFile('tilesets/animated.lua')
+
+  -- Charger tous les sprites du tileset
+  tileset:loadSprites()
+
+  -- Charger la map et l'associer au tileset
+  gameMap = iso3d.map.loadFromFile('maps/test.map')
+  gameMap:setTileset(tileset)
+end
+```
+
+### Rendu avec sprites
+
+Le rendu avec sprites est automatique. Si les sprites sont chargés, ils seront utilisés. Sinon, les couleurs de fallback seront utilisées :
+
+```lua
+function love.draw()
+  love.graphics.translate(400, 300)
+
+  -- Rendu de la map (utilisera les sprites si disponibles)
+  iso3d.drawMap(gameMap, 'block', {x = 0, y = 0})
+end
+```
+
+### Sprites sans animation
+
+Pour une tuile statique avec sprite :
+
+```lua
+g = {
+  name = "Grass",
+  sprite = "assets/tiles/grass.png",  -- Sprite unique
+  color = {0.2, 0.8, 0.3, 1},        -- Fallback
+  animated = false,                   -- Pas d'animation
+}
+```
+
+### Génération de sprites d'exemple
+
+Un script Python est fourni pour générer des sprites de test :
+
+```bash
+# Installer pillow (optionnel)
+pip install pillow
+
+# Générer les sprites
+python3 generate_sprites.py
+```
+
+Voir `assets/README.md` pour plus d'informations sur la création de sprites.
+
 ## Roadmap
 
 - [x] Structure de base de la librairie
@@ -331,10 +434,13 @@ end
 - [x] Fonction drawMap avec rendu complet
 - [x] Tri en profondeur (depth sorting)
 - [x] Modes de rendu : 'block' (3D) et 'flat' (2D)
-- [ ] Rendu avec sprites/textures depuis fichiers
-- [ ] Support des animations de tuiles
+- [x] Rendu avec sprites/textures depuis fichiers
+- [x] Support des animations de tuiles
+- [x] Chargement et cache de sprites
+- [x] Système d'animation par frames
+- [x] Fallback automatique vers couleurs si sprites manquants
 - [ ] Système de caméra avancé (zoom, rotation)
-- [ ] Optimisations de performance
+- [ ] Optimisations de performance (culling, batching)
 
 ## Licence
 
