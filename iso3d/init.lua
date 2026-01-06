@@ -189,27 +189,27 @@ function iso3d.drawTileBlock(x, y, z, height, color, opacity)
     love.graphics.polygon('line', topFace)
   else
     -- Negative height: block sinks downward (hole)
-    -- For holes, we draw the inner faces (reversed orientation)
+    -- For holes, we draw the inner faces (reversed vertex order)
     -- blockHeight is negative (e.g., -20), so screenY - blockHeight goes DOWN
     local depth = -blockHeight  -- Convert to positive for clarity
 
-    -- Draw left face (darker) - reversed
+    -- Draw left face (darker) - reversed vertex order for interior visibility
     love.graphics.setColor(r * 0.7, g * 0.7, b * 0.7, a)
     local leftFace = {
       screenX - tw, screenY,              -- Top left at ground level
-      screenX - tw, screenY + depth,      -- Top left at bottom of hole
+      screenX, screenY + th,              -- Bottom at ground level
       screenX, screenY + th + depth,      -- Bottom at bottom of hole
-      screenX, screenY + th                -- Bottom at ground level
+      screenX - tw, screenY + depth       -- Top left at bottom of hole
     }
     love.graphics.polygon('fill', leftFace)
 
-    -- Draw right face (medium) - reversed
+    -- Draw right face (medium) - reversed vertex order for interior visibility
     love.graphics.setColor(r * 0.85, g * 0.85, b * 0.85, a)
     local rightFace = {
       screenX + tw, screenY,              -- Top right at ground level
-      screenX + tw, screenY + depth,      -- Top right at bottom of hole
+      screenX, screenY + th,              -- Bottom at ground level
       screenX, screenY + th + depth,      -- Bottom at bottom of hole
-      screenX, screenY + th                -- Bottom at ground level
+      screenX + tw, screenY + depth       -- Top right at bottom of hole
     }
     love.graphics.polygon('fill', rightFace)
 
