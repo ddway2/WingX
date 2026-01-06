@@ -10,6 +10,7 @@ Ce projet utilise Love2D (LÖVE), un framework Lua pour créer des jeux 2D. Le p
 
 ```
 WingX/
+├── love2d/        # Code source de Love2D (submodule git)
 ├── main.lua       # Point d'entrée de l'application
 ├── .gitignore     # Fichiers à ignorer
 └── README.md      # Ce fichier
@@ -17,35 +18,64 @@ WingX/
 
 ## Installation
 
-### 1. Cloner le projet
+### 1. Cloner le projet avec les submodules
 
 ```bash
-git clone <url-du-repo>
+git clone --recursive <url-du-repo>
 cd WingX
+```
+
+Si vous avez déjà cloné le projet sans `--recursive`, initialisez les submodules :
+
+```bash
+git submodule update --init --recursive
 ```
 
 ### 2. Installer Love2D
 
-#### Windows
-Téléchargez l'installeur depuis le site officiel :
-- **Site officiel** : https://love2d.org/
-- Téléchargez la dernière version pour Windows
+#### Option A : Utiliser un binaire pré-compilé (Recommandé)
+
+**Windows**
+- Téléchargez l'installeur depuis : https://love2d.org/
 - Installez et ajoutez Love2D à votre PATH (optionnel)
 
-#### macOS
+**macOS**
 ```bash
 brew install love
 ```
 
-#### Linux (Ubuntu/Debian)
+**Linux (Ubuntu/Debian)**
 ```bash
 sudo apt-get install love
 ```
 
-#### Linux (Arch)
+**Linux (Arch)**
 ```bash
 sudo pacman -S love
 ```
+
+#### Option B : Compiler Love2D depuis les sources
+
+Si vous souhaitez compiler Love2D depuis le submodule inclus :
+
+```bash
+cd love2d
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+```
+
+**Prérequis pour la compilation :**
+- CMake 3.1+
+- Compilateur C/C++ (GCC, Clang, MSVC)
+- Dépendances système (varient selon l'OS)
+  - Ubuntu/Debian : `sudo apt-get install build-essential libfreetype6-dev libluajit-5.1-dev libphysfs-dev libsdl2-dev libopenal-dev libogg-dev libvorbis-dev libflac-dev libflac++-dev libtheora-dev libmodplug-dev libmpg123-dev libmng-dev libturbojpeg-dev`
+  - macOS : Les dépendances sont gérées par CMake
+  - Windows : Consultez https://github.com/love2d/megasource
+
+Pour plus de détails, consultez : https://github.com/love2d/love/blob/main/README.md
 
 ## Utilisation
 
