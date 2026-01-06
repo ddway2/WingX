@@ -248,9 +248,13 @@ function iso3d.drawTile(tile, x, y, tileset, renderMode)
     else
       -- Block rendering with height
       local blockHeight = (tile.height or 0) * 10
-      if blockHeight ~= 0 then
-        -- For blocks with height, draw colored block first, then sprite on top
+      if blockHeight > 0 then
+        -- Positive height: block rises from ground (z=0) to z=blockHeight
         iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity * 0.8)
+        iso3d.drawTileSprite(x, y, blockHeight, sprite, opacity, scale)
+      elseif blockHeight < 0 then
+        -- Negative height: block sinks from z=blockHeight to ground (z=0)
+        iso3d.drawTileBlock(x, y, blockHeight, -blockHeight, color, opacity * 0.8)
         iso3d.drawTileSprite(x, y, blockHeight, sprite, opacity, scale)
       else
         -- Height 0: just draw sprite
@@ -264,9 +268,12 @@ function iso3d.drawTile(tile, x, y, tileset, renderMode)
     else
       -- Block rendering with height
       local blockHeight = (tile.height or 0) * 10
-      if blockHeight ~= 0 then
-        -- For negative heights, draw block below ground level
+      if blockHeight > 0 then
+        -- Positive height: block rises from ground
         iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity)
+      elseif blockHeight < 0 then
+        -- Negative height: block sinks below ground
+        iso3d.drawTileBlock(x, y, blockHeight, -blockHeight, color, opacity)
       else
         -- Height 0: draw flat diamond
         iso3d.drawTileDiamond(x, y, z, color, opacity)
