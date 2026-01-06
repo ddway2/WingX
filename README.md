@@ -10,6 +10,9 @@ Ce projet utilise Love2D (LÖVE), un framework Lua pour créer des jeux 2D. Le p
 
 ```
 WingX/
+├── iso3d/         # Librairie isométrique 3D pour Love2D
+│   ├── init.lua   # Module principal de la librairie
+│   └── README.md  # Documentation de la librairie
 ├── love2d/        # Code source de Love2D (submodule git)
 ├── main.lua       # Point d'entrée de l'application
 ├── .gitignore     # Fichiers à ignorer
@@ -105,6 +108,27 @@ Le fichier `main.lua` contient le code principal de l'application. Les fonctions
 - `love.draw()` : Appelée à chaque frame pour dessiner à l'écran
 
 Pour modifier l'application, éditez simplement `main.lua` et relancez avec `love .`
+
+### Librairie iso3d
+
+Le projet inclut une librairie isométrique 3D (`iso3d/`) pour créer des rendus en perspective isométrique.
+
+**Utilisation :**
+
+```lua
+local iso3d = require('iso3d')
+
+function love.load()
+  iso3d.init({ tileWidth = 64, tileHeight = 32 })
+end
+
+function love.draw()
+  love.graphics.translate(400, 300)
+  iso3d.drawPoint(10, 5, 0, {1, 0, 0, 1})
+end
+```
+
+Pour plus de détails, consultez la [documentation de iso3d](iso3d/README.md).
 
 ## Ressources
 
