@@ -230,12 +230,24 @@ love.graphics.draw(
 
 Pour les tuiles avec hauteur ET sprite:
 
+**Hauteur positive (bloc qui s'élève):**
 ```lua
-if blockHeight ~= 0 then
+if blockHeight > 0 then
   -- 1. Dessiner le bloc 3D (avec opacité réduite)
   iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity * 0.8)
 
-  -- 2. Dessiner le sprite au-dessus du bloc
+  -- 2. Dessiner le sprite au sommet du bloc
+  iso3d.drawTileSprite(x, y, blockHeight, sprite, opacity, scale)
+end
+```
+
+**Hauteur négative (bloc enfoncé):**
+```lua
+if blockHeight < 0 then
+  -- 1. Dessiner le bloc 3D enfoncé (avec opacité réduite)
+  iso3d.drawTileBlock(x, y, blockHeight, -blockHeight, color, opacity * 0.8)
+
+  -- 2. Dessiner le sprite au fond du trou
   iso3d.drawTileSprite(x, y, blockHeight, sprite, opacity, scale)
 end
 ```
@@ -361,12 +373,16 @@ drawTile()
          |    |    └─> drawTileSprite(x, y, z)
          |    |
          |    └─> Mode 'block':
-         |         ├─> Si height != 0:
-         |         |    ├─> drawTileBlock() (bloc coloré)
-         |         |    └─> drawTileSprite() (sprite au sommet)
+         |         ├─> Si height > 0:
+         |         |    ├─> drawTileBlock(x,y,0,h) (bloc qui s'élève)
+         |         |    └─> drawTileSprite(x,y,h) (sprite au sommet)
          |         |
-         |         └─> Sinon:
-         |              └─> drawTileSprite(x, y, z)
+         |         ├─> Si height < 0:
+         |         |    ├─> drawTileBlock(x,y,h,-h) (bloc enfoncé)
+         |         |    └─> drawTileSprite(x,y,h) (sprite au fond)
+         |         |
+         |         └─> Si height = 0:
+         |              └─> drawTileSprite(x, y, 0)
          |
          └─> Sinon (pas de sprite):
               |
@@ -374,10 +390,13 @@ drawTile()
               |    └─> drawTileDiamond()
               |
               └─> Mode 'block':
-                   ├─> Si height != 0:
-                   |    └─> drawTileBlock()
+                   ├─> Si height > 0:
+                   |    └─> drawTileBlock(x,y,0,h) (s'élève)
                    |
-                   └─> Sinon:
+                   ├─> Si height < 0:
+                   |    └─> drawTileBlock(x,y,h,-h) (s'enfonce)
+                   |
+                   └─> Si height = 0:
                         └─> drawTileDiamond()
 ```
 
@@ -418,15 +437,28 @@ Hauteur  3: z =  30 pixels
 
 ### Rendu des hauteurs négatives
 
+**Pour les hauteurs positives (height > 0):**
 ```lua
-if blockHeight ~= 0 then
-  iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity)
-end
+local blockHeight = tile.height * 10
+iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity)
+-- Exemple: height=2 → drawTileBlock(x, y, 0, 20, ...)
+-- Le bloc s'élève de z=0 à z=20
 ```
 
-- `blockHeight` peut être négatif
-- Si négatif: le bloc est dessiné "enfoncé" sous le niveau 0
-- La face supérieure apparaît plus bas
+**Pour les hauteurs négatives (height < 0):**
+```lua
+local blockHeight = tile.height * 10  -- négatif
+iso3d.drawTileBlock(x, y, blockHeight, -blockHeight, color, opacity)
+-- Exemple: height=-2 → blockHeight=-20
+--         → drawTileBlock(x, y, -20, 20, ...)
+-- Le bloc s'enfonce de z=-20 à z=0
+```
+
+- Pour les hauteurs négatives, le bloc est dessiné "enfoncé" sous le niveau 0
+- Le point de départ z est négatif (blockHeight)
+- La hauteur du bloc est positive (-blockHeight)
+- La face supérieure apparaît au niveau du sol (z=0)
+- Les faces latérales descendent jusqu'au fond (z=blockHeight)
 
 **Visualisation:**
 
