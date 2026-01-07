@@ -1,9 +1,9 @@
 -- iso3d - Isometric 3D library for Love2D
--- Version: 0.3.0
+-- Version: 0.4.0
 
 local iso3d = {
-  _VERSION = '0.3.0',
-  _DESCRIPTION = 'Isometric 3D rendering library for Love2D',
+  _VERSION = '0.4.0',
+  _DESCRIPTION = 'Isometric rendering library for Love2D',
   _LICENSE = 'MIT'
 }
 
@@ -45,32 +45,27 @@ function iso3d.getVersion()
   return iso3d._VERSION
 end
 
--- Module placeholder functions (to be implemented)
-
--- Convert 3D coordinates to 2D screen coordinates
-function iso3d.toScreen(x, y, z)
-  -- Placeholder: basic isometric projection
+-- Convert 2D grid coordinates to 2D screen coordinates
+function iso3d.toScreen(x, y)
   local screenX = (x - y) * (iso3d.config.tileWidth / 2)
-  local screenY = (x + y) * (iso3d.config.tileHeight / 2) - z
+  local screenY = (x + y) * (iso3d.config.tileHeight / 2)
   return screenX, screenY
 end
 
--- Convert 2D screen coordinates to 3D coordinates (inverse projection)
-function iso3d.toWorld(screenX, screenY, z)
-  z = z or 0
-  -- Placeholder: basic inverse isometric projection
+-- Convert 2D screen coordinates to 2D grid coordinates (inverse projection)
+function iso3d.toWorld(screenX, screenY)
   local tw = iso3d.config.tileWidth / 2
   local th = iso3d.config.tileHeight / 2
 
-  local y = (screenX / tw + (screenY + z) / th) / 2
+  local y = (screenX / tw + screenY / th) / 2
   local x = y + screenX / tw
 
-  return x, y, z
+  return x, y
 end
 
 -- Draw a point in isometric space
-function iso3d.drawPoint(x, y, z, color)
-  local screenX, screenY = iso3d.toScreen(x, y, z)
+function iso3d.drawPoint(x, y, color)
+  local screenX, screenY = iso3d.toScreen(x, y)
 
   if color then
     love.graphics.setColor(color)
@@ -80,9 +75,9 @@ function iso3d.drawPoint(x, y, z, color)
 end
 
 -- Draw a line in isometric space
-function iso3d.drawLine(x1, y1, z1, x2, y2, z2, color)
-  local screenX1, screenY1 = iso3d.toScreen(x1, y1, z1)
-  local screenX2, screenY2 = iso3d.toScreen(x2, y2, z2)
+function iso3d.drawLine(x1, y1, x2, y2, color)
+  local screenX1, screenY1 = iso3d.toScreen(x1, y1)
+  local screenX2, screenY2 = iso3d.toScreen(x2, y2)
 
   if color then
     love.graphics.setColor(color)
@@ -102,8 +97,8 @@ function iso3d.debug()
 end
 
 -- Draw an isometric tile (diamond shape)
-function iso3d.drawTileDiamond(x, y, z, color, opacity)
-  local screenX, screenY = iso3d.toScreen(x, y, z)
+function iso3d.drawTileDiamond(x, y, color, opacity)
+  local screenX, screenY = iso3d.toScreen(x, y)
   local tw = iso3d.config.tileWidth / 2
   local th = iso3d.config.tileHeight / 2
 
@@ -133,135 +128,11 @@ function iso3d.drawTileDiamond(x, y, z, color, opacity)
   love.graphics.polygon('line', vertices)
 end
 
--- Draw a 3D tile block (with height)
-function iso3d.drawTileBlock(x, y, z, height, color, opacity, leftHeight, rightHeight)
-  local screenX, screenY = iso3d.toScreen(x, y, z)
-  local tw = iso3d.config.tileWidth / 2
-  local th = iso3d.config.tileHeight / 2
-  local blockHeight = height or th
-
-  -- Default neighbor heights to 0 (ground level) if not provided
-  leftHeight = leftHeight or 0
-  rightHeight = rightHeight or 0
-
-  -- Set base color
-  local r, g, b, a = 1, 1, 1, 1
-  if color then
-    r, g, b = color[1], color[2], color[3]
-    a = color[4] or 1
-  end
-  if opacity then
-    a = a * opacity
-  end
-
-  if blockHeight >= 0 then
-    -- Positive height: block rises upward
-    -- Convert heights to Z coordinates
-    local currentZ = blockHeight
-    local leftZ = leftHeight * 10
-    local rightZ = rightHeight * 10
-
-    -- Draw left face only if this block is higher than left neighbor
-    if currentZ > leftZ then
-      love.graphics.setColor(r * 0.7, g * 0.7, b * 0.7, a)
-      local leftFace = {
-        screenX - tw, screenY - leftZ,           -- Top left at neighbor height
-        screenX, screenY + th - leftZ,           -- Bottom at neighbor height
-        screenX, screenY + th - blockHeight,     -- Bottom elevated
-        screenX - tw, screenY - blockHeight      -- Top left elevated
-      }
-      love.graphics.polygon('fill', leftFace)
-      love.graphics.setColor(0, 0, 0, 0.3)
-      love.graphics.polygon('line', leftFace)
-    end
-
-    -- Draw right face only if this block is higher than right neighbor
-    if currentZ > rightZ then
-      love.graphics.setColor(r * 0.85, g * 0.85, b * 0.85, a)
-      local rightFace = {
-        screenX + tw, screenY - rightZ,          -- Top right at neighbor height
-        screenX, screenY + th - rightZ,          -- Bottom at neighbor height
-        screenX, screenY + th - blockHeight,     -- Bottom elevated
-        screenX + tw, screenY - blockHeight      -- Top right elevated
-      }
-      love.graphics.polygon('fill', rightFace)
-      love.graphics.setColor(0, 0, 0, 0.3)
-      love.graphics.polygon('line', rightFace)
-    end
-
-    -- Always draw top face
-    love.graphics.setColor(r, g, b, a)
-    local topFace = {
-      screenX, screenY - th - blockHeight,        -- Top
-      screenX + tw, screenY - blockHeight,        -- Right
-      screenX, screenY + th - blockHeight,        -- Bottom
-      screenX - tw, screenY - blockHeight         -- Left
-    }
-    love.graphics.polygon('fill', topFace)
-    love.graphics.setColor(0, 0, 0, 0.3)
-    love.graphics.polygon('line', topFace)
-  else
-    -- Negative height: block sinks downward (hole)
-    -- For holes, we draw the inner faces (reversed vertex order)
-    local depth = -blockHeight  -- Convert to positive for clarity
-
-    -- Calculate neighbor depths (convert to Z coordinates)
-    local leftZ = leftHeight * 10
-    local rightZ = rightHeight * 10
-
-    -- Draw left face only if this hole is deeper than left neighbor
-    -- (deeper means more negative, so we check if leftZ is higher/less deep)
-    if blockHeight < leftZ then
-      -- Calculate where the face should start (at neighbor's level)
-      local leftFaceTop = leftZ
-
-      love.graphics.setColor(r * 0.7, g * 0.7, b * 0.7, a)
-      local leftFace = {
-        screenX - tw, screenY - leftFaceTop,     -- Top left at neighbor level
-        screenX, screenY + th - leftFaceTop,     -- Bottom at neighbor level
-        screenX, screenY + th + depth,           -- Bottom at bottom of hole
-        screenX - tw, screenY + depth            -- Top left at bottom of hole
-      }
-      love.graphics.polygon('fill', leftFace)
-      love.graphics.setColor(0, 0, 0, 0.3)
-      love.graphics.polygon('line', leftFace)
-    end
-
-    -- Draw right face only if this hole is deeper than right neighbor
-    if blockHeight < rightZ then
-      local rightFaceTop = rightZ
-
-      love.graphics.setColor(r * 0.85, g * 0.85, b * 0.85, a)
-      local rightFace = {
-        screenX + tw, screenY - rightFaceTop,    -- Top right at neighbor level
-        screenX, screenY + th - rightFaceTop,    -- Bottom at neighbor level
-        screenX, screenY + th + depth,           -- Bottom at bottom of hole
-        screenX + tw, screenY + depth            -- Top right at bottom of hole
-      }
-      love.graphics.polygon('fill', rightFace)
-      love.graphics.setColor(0, 0, 0, 0.3)
-      love.graphics.polygon('line', rightFace)
-    end
-
-    -- Always draw bottom face (floor of the hole)
-    love.graphics.setColor(r * 0.5, g * 0.5, b * 0.5, a)
-    local bottomFace = {
-      screenX, screenY - th + depth,        -- Top
-      screenX + tw, screenY + depth,        -- Right
-      screenX, screenY + th + depth,        -- Bottom
-      screenX - tw, screenY + depth         -- Left
-    }
-    love.graphics.polygon('fill', bottomFace)
-    love.graphics.setColor(0, 0, 0, 0.3)
-    love.graphics.polygon('line', bottomFace)
-  end
-end
-
 -- Draw a sprite on an isometric tile
-function iso3d.drawTileSprite(x, y, z, sprite, opacity, scale)
+function iso3d.drawTileSprite(x, y, sprite, opacity, scale)
   if not sprite then return end
 
-  local screenX, screenY = iso3d.toScreen(x, y, z)
+  local screenX, screenY = iso3d.toScreen(x, y)
   local tw = iso3d.config.tileWidth
   local th = iso3d.config.tileHeight
 
@@ -288,10 +159,8 @@ function iso3d.drawTileSprite(x, y, z, sprite, opacity, scale)
 end
 
 -- Draw a single tile with tileset properties
-function iso3d.drawTile(tile, x, y, tileset, renderMode, gameMap)
+function iso3d.drawTile(tile, x, y, tileset)
   if not tile then return end
-
-  renderMode = renderMode or 'block'  -- 'block' or 'flat'
 
   -- Get tile definition from tileset
   local tileDef = nil
@@ -301,82 +170,32 @@ function iso3d.drawTile(tile, x, y, tileset, renderMode, gameMap)
 
   -- Get display properties
   local color = tileDef and tileDef.color or {0.8, 0.8, 0.8, 1}
-  local heightOffset = tileDef and tileDef.heightOffset or 0
   local opacity = tileDef and tileDef.opacity or 1.0
   local scale = tileDef and tileDef.scale or 1.0
-
-  -- Calculate Z position
-  local z = (tile.height or 0) * 10 + heightOffset
-
-  -- Get neighbor heights for proper face rendering
-  local leftHeight = 0
-  local rightHeight = 0
-  if gameMap then
-    -- Left neighbor shares the left face: (x-1, y)
-    local leftTile = gameMap:getTile(x - 1, y)
-    leftHeight = leftTile and leftTile.height or 0
-
-    -- Right neighbor shares the right face: (x, y-1)
-    local rightTile = gameMap:getTile(x, y - 1)
-    rightHeight = rightTile and rightTile.height or 0
-  end
 
   -- Check if we have a sprite to render
   local sprite = tileDef and tileDef:getCurrentSprite()
 
   if sprite then
     -- Render with sprite
-    if renderMode == 'flat' then
-      iso3d.drawTileSprite(x, y, z, sprite, opacity, scale)
-    else
-      -- Block rendering with height
-      local blockHeight = (tile.height or 0) * 10
-      if blockHeight > 0 then
-        -- Positive height: block rises from ground (z=0) to z=blockHeight
-        iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity * 0.8, leftHeight, rightHeight)
-        iso3d.drawTileSprite(x, y, blockHeight, sprite, opacity, scale)
-      elseif blockHeight < 0 then
-        -- Negative height: block sinks below ground (hole)
-        iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity * 0.8, leftHeight, rightHeight)
-        iso3d.drawTileSprite(x, y, blockHeight, sprite, opacity, scale)
-      else
-        -- Height 0: just draw sprite
-        iso3d.drawTileSprite(x, y, z, sprite, opacity, scale)
-      end
-    end
+    iso3d.drawTileSprite(x, y, sprite, opacity, scale)
   else
     -- Render with color (fallback when no sprite)
-    if renderMode == 'flat' then
-      iso3d.drawTileDiamond(x, y, z, color, opacity)
-    else
-      -- Block rendering with height
-      local blockHeight = (tile.height or 0) * 10
-      if blockHeight > 0 then
-        -- Positive height: block rises from ground
-        iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity, leftHeight, rightHeight)
-      elseif blockHeight < 0 then
-        -- Negative height: block sinks below ground
-        iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity, leftHeight, rightHeight)
-      else
-        -- Height 0: draw flat diamond
-        iso3d.drawTileDiamond(x, y, z, color, opacity)
-      end
-    end
+    iso3d.drawTileDiamond(x, y, color, opacity)
   end
 
   -- Draw debug info if enabled
   if iso3d.config.debug then
-    local screenX, screenY = iso3d.toScreen(x, y, z)
+    local screenX, screenY = iso3d.toScreen(x, y)
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.print(string.format("%s:%d", tile.type, tile.height), screenX - 10, screenY - 5)
+    love.graphics.print(tile.type, screenX - 10, screenY - 5)
   end
 end
 
 -- Draw a complete map
-function iso3d.drawMap(gameMap, renderMode, offset)
+function iso3d.drawMap(gameMap, offset)
   if not gameMap then return end
 
-  renderMode = renderMode or 'block'
   offset = offset or {x = 0, y = 0}
 
   love.graphics.push()
@@ -387,7 +206,7 @@ function iso3d.drawMap(gameMap, renderMode, offset)
     for x = 1, gameMap.width do
       local tile = gameMap:getTile(x, y)
       if tile then
-        iso3d.drawTile(tile, x, y, gameMap:getTileset(), renderMode, gameMap)
+        iso3d.drawTile(tile, x, y, gameMap:getTileset())
       end
     end
   end
