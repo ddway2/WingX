@@ -6,6 +6,20 @@ local render = {}
 -- References to other modules (will be set by init.lua)
 render.config = nil
 render.projection = nil
+render.camera = nil
+
+-- Helper: Apply rotation and then project to screen coordinates
+local function toScreenRotated(x, y, mapWidth, mapHeight)
+  local rotation = render.config.rotation
+
+  if rotation ~= 0 and mapWidth and mapHeight then
+    -- Apply rotation transformation
+    x, y = render.camera.applyRotation(x, y, mapWidth, mapHeight, rotation)
+  end
+
+  -- Apply isometric projection
+  return render.projection.toScreen(x, y)
+end
 
 -- Draw an isometric tile (diamond shape)
 function render.drawTileDiamond(x, y, color, opacity)
@@ -72,7 +86,8 @@ function render.drawTileSprite(x, y, sprite, opacity, scale)
 end
 
 -- Draw a single tile with tileset properties
-function render.drawTile(tile, x, y, tileset)
+-- mapWidth and mapHeight are optional, needed for rotation support
+function render.drawTile(tile, x, y, tileset, mapWidth, mapHeight)
   if not tile then return end
 
   -- Get tile definition from tileset
@@ -86,20 +101,26 @@ function render.drawTile(tile, x, y, tileset)
   local opacity = tileDef and tileDef.opacity or 1.0
   local scale = tileDef and tileDef.scale or 1.0
 
+  -- Apply rotation to coordinates
+  local renderX, renderY = x, y
+  if render.config.rotation ~= 0 and mapWidth and mapHeight then
+    renderX, renderY = render.camera.applyRotation(x, y, mapWidth, mapHeight, render.config.rotation)
+  end
+
   -- Check if we have a sprite to render
   local sprite = tileDef and tileDef:getCurrentSprite()
 
   if sprite then
     -- Render with sprite
-    render.drawTileSprite(x, y, sprite, opacity, scale)
+    render.drawTileSprite(renderX, renderY, sprite, opacity, scale)
   else
     -- Render with color (fallback when no sprite)
-    render.drawTileDiamond(x, y, color, opacity)
+    render.drawTileDiamond(renderX, renderY, color, opacity)
   end
 
   -- Draw debug info if enabled
   if render.config.debug then
-    local screenX, screenY = render.projection.toScreen(x, y)
+    local screenX, screenY = render.projection.toScreen(renderX, renderY)
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.print(tile.type, screenX - 10, screenY - 5)
   end
@@ -114,12 +135,19 @@ function render.drawMap(gameMap, offset)
   love.graphics.push()
   love.graphics.translate(offset.x, offset.y)
 
-  -- Draw tiles back to front for proper depth sorting
-  for y = gameMap.height, 1, -1 do
-    for x = 1, gameMap.width do
+  -- Get draw order based on rotation for proper depth sorting
+  local startY, endY, stepY, startX, endX, stepX = render.camera.getDrawOrder(
+    gameMap.width,
+    gameMap.height,
+    render.config.rotation
+  )
+
+  -- Draw tiles in correct order (back to front)
+  for y = startY, endY, stepY do
+    for x = startX, endX, stepX do
       local tile = gameMap:getTile(x, y)
       if tile then
-        render.drawTile(tile, x, y, gameMap:getTileset())
+        render.drawTile(tile, x, y, gameMap:getTileset(), gameMap.width, gameMap.height)
       end
     end
   end

@@ -11,6 +11,7 @@ iso3d est une librairie pour Love2D qui permet de créer des rendus en perspecti
 La librairie est organisée en modules :
 
 - **iso3d** - Module principal qui expose toutes les fonctions
+- **iso3d.camera** - Gestion de la caméra (rotation)
 - **iso3d.projection** - Fonctions de conversion de coordonnées
 - **iso3d.render** - Fonctions de rendu des tuiles et maps
 - **iso3d.debug** - Utilitaires de debug et visualisation
@@ -47,6 +48,7 @@ Les options de configuration disponibles :
 - `tileHeight` : Hauteur d'une tuile isométrique (défaut: 32)
 - `debug` : Mode debug pour afficher les types de tuiles (défaut: false)
 - `zoom` : Niveau de zoom (défaut: 1.0, range: 0.2 à 5.0)
+- `rotation` : Rotation de la caméra (défaut: 0, valeurs: 0-3 pour nord, est, sud, ouest)
 
 ### Convention de coordonnées
 
@@ -126,6 +128,100 @@ end
 - Les tuiles (losanges et sprites) sont automatiquement redimensionnées
 - Le zoom s'applique de manière uniforme sur les axes X et Y
 - La projection isométrique reste correcte à tous les niveaux de zoom
+
+## Rotation de la caméra
+
+iso3d supporte la rotation de la caméra par incréments de 90° pour visualiser la map sous différents angles.
+
+### Concept
+
+La rotation permet de tourner la vue autour de la map en 4 positions discrètes :
+- **0 = Nord** : Vue par défaut
+- **1 = Est** : Rotation 90° horaire
+- **2 = Sud** : Rotation 180°
+- **3 = Ouest** : Rotation 270° horaire (ou 90° anti-horaire)
+
+La rotation transforme les coordonnées de grille avant la projection isométrique, garantissant un rendu correct avec tri en profondeur.
+
+### `iso3d.setRotation(rotation)`
+Définit la rotation de la caméra.
+
+```lua
+iso3d.setRotation(0)  -- Vue nord (défaut)
+iso3d.setRotation(1)  -- Vue est (90° horaire)
+iso3d.setRotation(2)  -- Vue sud (180°)
+iso3d.setRotation(3)  -- Vue ouest (270° horaire)
+```
+
+**Paramètres:**
+- `rotation` : Rotation (entier 0-3)
+  - `0` = Nord (vue par défaut)
+  - `1` = Est (rotation 90° horaire)
+  - `2` = Sud (rotation 180°)
+  - `3` = Ouest (rotation 270° horaire)
+
+**Validation:**
+- La fonction génère une erreur si rotation n'est pas entre 0 et 3
+
+### `iso3d.getRotation()`
+Retourne la rotation actuelle de la caméra.
+
+```lua
+local rotation = iso3d.getRotation()
+print('Rotation:', rotation)  -- 0, 1, 2, ou 3
+```
+
+**Retourne:** Entier (0-3)
+
+### `iso3d.rotateClockwise()`
+Fait pivoter la caméra de 90° dans le sens horaire.
+
+```lua
+iso3d.rotateClockwise()  -- 0→1, 1→2, 2→3, 3→0
+```
+
+### `iso3d.rotateCounterClockwise()`
+Fait pivoter la caméra de 90° dans le sens anti-horaire.
+
+```lua
+iso3d.rotateCounterClockwise()  -- 0→3, 3→2, 2→1, 1→0
+```
+
+### Exemple d'utilisation
+
+```lua
+function love.keypressed(key)
+  -- Rotation avec Q et E
+  if key == 'q' then
+    iso3d.rotateCounterClockwise()
+    print('Rotation:', iso3d.getRotation())
+  elseif key == 'e' then
+    iso3d.rotateClockwise()
+    print('Rotation:', iso3d.getRotation())
+  end
+
+  -- Ou rotation directe avec les touches 1-4
+  if key == '1' then iso3d.setRotation(0) end  -- Nord
+  if key == '2' then iso3d.setRotation(1) end  -- Est
+  if key == '3' then iso3d.setRotation(2) end  -- Sud
+  if key == '4' then iso3d.setRotation(3) end  -- Ouest
+end
+```
+
+### Comportement
+
+- La rotation transforme les coordonnées de grille avant la projection isométrique
+- L'ordre de rendu (depth sorting) est automatiquement adapté selon la rotation
+- La rotation n'affecte pas le zoom ni les autres paramètres de caméra
+- Les coordonnées de la map (x, y dans le fichier .map) restent constantes
+- Compatible avec toutes les fonctionnalités (sprites, animations, debug, etc.)
+
+### Cas d'usage
+
+- **Jeux de stratégie** : Visualiser le terrain sous différents angles
+- **City builders** : Accéder aux zones cachées par des bâtiments
+- **RPG isométriques** : Mieux voir les obstacles et chemins
+- **Level design** : Vérifier l'apparence de la map de tous les côtés
 
 ## API de projection
 
@@ -514,7 +610,7 @@ end
 - [x] Simplification de l'API (suppression hauteurs 3D)
 - [x] Réorganisation en modules séparés
 - [x] Système de zoom dynamique
-- [ ] Système de caméra avancé (rotation)
+- [x] Système de caméra avancé (rotation 90°)
 - [ ] Optimisations de performance (culling, batching)
 
 ## Licence
