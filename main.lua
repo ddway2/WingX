@@ -6,7 +6,6 @@ local iso3d = require('iso3d')
 -- Global variables
 local gameMap
 local tileset
-local renderMode = 'block'  -- 'block' or 'flat'
 local cameraOffset = {x = 0, y = 0}
 local font
 
@@ -73,7 +72,6 @@ function love.load()
   print('')
   print('Controls:')
   print('  Arrow keys: Move camera')
-  print('  Space: Toggle render mode (block/flat)')
   print('  D: Toggle debug mode')
   print('  R: Reset camera')
   print('  1-9: Load different maps')
@@ -104,17 +102,6 @@ function love.update(dt)
 end
 
 function love.keypressed(key)
-  -- Toggle render mode
-  if key == 'space' then
-    if renderMode == 'block' then
-      renderMode = 'flat'
-      print('Render mode: flat')
-    else
-      renderMode = 'block'
-      print('Render mode: block')
-    end
-  end
-
   -- Toggle debug mode
   if key == 'd' then
     iso3d.config.debug = not iso3d.config.debug
@@ -156,7 +143,7 @@ function love.draw()
   love.graphics.clear(0.15, 0.15, 0.2)
 
   -- Draw the isometric map
-  iso3d.drawMap(gameMap, renderMode, cameraOffset)
+  iso3d.drawMap(gameMap, cameraOffset)
 
   -- Draw UI
   love.graphics.setColor(1, 1, 1, 0.9)
@@ -171,9 +158,6 @@ function love.draw()
   love.graphics.print('Map: ' .. maps[currentMapIndex].name .. ' (' .. gameMap.width .. 'x' .. gameMap.height .. ')', 10, uiY)
   uiY = uiY + 20
 
-  love.graphics.print('Render mode: ' .. renderMode, 10, uiY)
-  uiY = uiY + 20
-
   love.graphics.print('Debug: ' .. tostring(iso3d.config.debug), 10, uiY)
   uiY = uiY + 30
 
@@ -182,8 +166,6 @@ function love.draw()
   love.graphics.print('Controls:', 10, uiY)
   uiY = uiY + 18
   love.graphics.print('  Arrows: Move camera', 10, uiY)
-  uiY = uiY + 18
-  love.graphics.print('  Space: Toggle mode', 10, uiY)
   uiY = uiY + 18
   love.graphics.print('  D: Toggle debug', 10, uiY)
   uiY = uiY + 18

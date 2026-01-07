@@ -1,10 +1,21 @@
 # iso3d
 
-Librairie Lua pour le rendu isométrique 3D dans Love2D.
+Librairie Lua pour le rendu isométrique 2D dans Love2D.
 
 ## Description
 
-iso3d est une librairie pour Love2D qui permet de créer des rendus en perspective isométrique. Elle fournit des fonctions pour convertir des coordonnées 3D en coordonnées 2D d'écran et vice-versa.
+iso3d est une librairie pour Love2D qui permet de créer des rendus en perspective isométrique. Elle fournit des fonctions pour convertir des coordonnées de grille 2D en coordonnées d'écran et vice-versa, avec un système complet de gestion de maps et tilesets.
+
+## Architecture
+
+La librairie est organisée en modules :
+
+- **iso3d** - Module principal qui expose toutes les fonctions
+- **iso3d.projection** - Fonctions de conversion de coordonnées
+- **iso3d.render** - Fonctions de rendu des tuiles et maps
+- **iso3d.debug** - Utilitaires de debug et visualisation
+- **iso3d.map** - Gestion des maps
+- **iso3d.tileset** - Gestion des tilesets
 
 ## Installation
 
@@ -23,7 +34,7 @@ function love.load()
   iso3d.init({
     tileWidth = 64,
     tileHeight = 32,
-    debug = true
+    debug = false
   })
 end
 ```
@@ -34,83 +45,133 @@ Les options de configuration disponibles :
 
 - `tileWidth` : Largeur d'une tuile isométrique (défaut: 64)
 - `tileHeight` : Hauteur d'une tuile isométrique (défaut: 32)
-- `debug` : Mode debug pour afficher les informations (défaut: false)
+- `debug` : Mode debug pour afficher les types de tuiles (défaut: false)
 
-### Fonctions disponibles
+### Convention de coordonnées
 
-#### `iso3d.init(config)`
-Initialise la librairie avec une configuration optionnelle.
+Dans un fichier map, la **première ligne** correspond à la **rangée la plus haute** à l'écran (sommet du losange). L'affichage isométrique correspond à une rotation anti-horaire de 45° avec écrasement vertical.
 
-#### `iso3d.toScreen(x, y, z)`
-Convertit des coordonnées 3D en coordonnées 2D d'écran.
-
-```lua
-local screenX, screenY = iso3d.toScreen(10, 5, 0)
+Exemple de map 4x4 :
+```
+A B C D   →   A (sommet haut)
+E F G H   →   E F B (diagonale suivante)
+I J K L   →   I J K C (diagonale suivante)
+M N O P   →   M N O L P (coin bas)
 ```
 
-#### `iso3d.toWorld(screenX, screenY, z)`
-Convertit des coordonnées 2D d'écran en coordonnées 3D.
+## API de projection
+
+### `iso3d.toScreen(x, y)`
+Convertit des coordonnées de grille 2D en coordonnées d'écran.
 
 ```lua
-local x, y, z = iso3d.toWorld(100, 50, 0)
+local screenX, screenY = iso3d.toScreen(5, 3)
 ```
 
-#### `iso3d.drawPoint(x, y, z, color)`
-Dessine un point dans l'espace isométrique.
+**Paramètres:**
+- `x` : Position X dans la grille (colonne)
+- `y` : Position Y dans la grille (ligne)
+
+**Retourne:** `screenX, screenY`
+
+### `iso3d.toWorld(screenX, screenY)`
+Convertit des coordonnées d'écran en coordonnées de grille 2D.
 
 ```lua
-iso3d.drawPoint(10, 5, 0, {1, 0, 0, 1}) -- Point rouge
+local x, y = iso3d.toWorld(100, 50)
 ```
 
-#### `iso3d.drawLine(x1, y1, z1, x2, y2, z2, color)`
-Dessine une ligne dans l'espace isométrique.
+**Paramètres:**
+- `screenX` : Position X à l'écran
+- `screenY` : Position Y à l'écran
+
+**Retourne:** `x, y`
+
+## API de rendu
+
+### `iso3d.drawTileDiamond(x, y, color, opacity)`
+Dessine une tuile isométrique en forme de losange.
 
 ```lua
-iso3d.drawLine(0, 0, 0, 10, 10, 5, {0, 1, 0, 1}) -- Ligne verte
+iso3d.drawTileDiamond(5, 5, {0.2, 0.8, 0.3, 1}, 1.0)
 ```
 
-#### `iso3d.getVersion()`
-Retourne la version de la librairie.
+**Paramètres:**
+- `x, y` : Position dans la grille
+- `color` : Table RGBA `{r, g, b, a}` (valeurs 0-1)
+- `opacity` : Opacité (0-1)
 
-#### `iso3d.debug()`
-Affiche les informations de debug dans la console.
-
-### Fonctions de rendu
-
-#### `iso3d.drawTileDiamond(x, y, z, color, opacity)`
-Dessine une tuile isométrique plate (losange).
+### `iso3d.drawTileSprite(x, y, sprite, opacity, scale)`
+Dessine un sprite sur une tuile isométrique.
 
 ```lua
-iso3d.drawTileDiamond(5, 5, 10, {0.2, 0.8, 0.3, 1}, 1.0)
+local sprite = love.graphics.newImage('assets/grass.png')
+iso3d.drawTileSprite(5, 5, sprite, 1.0, 1.0)
 ```
 
-#### `iso3d.drawTileBlock(x, y, z, height, color, opacity)`
-Dessine un bloc 3D isométrique avec faces gauche, droite et dessus.
+**Paramètres:**
+- `x, y` : Position dans la grille
+- `sprite` : Objet Love2D Image
+- `opacity` : Opacité (0-1)
+- `scale` : Échelle du sprite
 
-```lua
-iso3d.drawTileBlock(5, 5, 0, 30, {0.5, 0.5, 0.5, 1}, 1.0)
-```
-
-#### `iso3d.drawTile(tile, x, y, tileset, renderMode)`
+### `iso3d.drawTile(tile, x, y, tileset)`
 Dessine une tuile avec ses propriétés du tileset.
-
-- `renderMode` : 'block' (3D) ou 'flat' (2D)
 
 ```lua
 local tile = gameMap:getTile(2, 3)
-iso3d.drawTile(tile, 2, 3, tileset, 'block')
+iso3d.drawTile(tile, 2, 3, tileset)
 ```
 
-#### `iso3d.drawMap(gameMap, renderMode, offset)`
+**Paramètres:**
+- `tile` : Objet tuile
+- `x, y` : Position dans la grille
+- `tileset` : Tileset contenant les définitions
+
+### `iso3d.drawMap(gameMap, offset)`
 Dessine une map complète avec tri en profondeur.
 
 ```lua
-iso3d.drawMap(gameMap, 'block', {x = 400, y = 300})
+iso3d.drawMap(gameMap, {x = 400, y = 300})
+```
+
+**Paramètres:**
+- `gameMap` : Objet map à dessiner
+- `offset` : Table `{x, y}` pour décaler la caméra
+
+## API de debug
+
+### `iso3d.drawPoint(x, y, color)`
+Dessine un point dans l'espace isométrique.
+
+```lua
+iso3d.drawPoint(10, 5, {1, 0, 0, 1}) -- Point rouge
+```
+
+### `iso3d.drawLine(x1, y1, x2, y2, color)`
+Dessine une ligne dans l'espace isométrique.
+
+```lua
+iso3d.drawLine(0, 0, 10, 10, {0, 1, 0, 1}) -- Ligne verte
+```
+
+### `iso3d.debug()`
+Affiche les informations de debug dans la console.
+
+```lua
+iso3d.debug()
+```
+
+### `iso3d.getVersion()`
+Retourne la version de la librairie.
+
+```lua
+print('iso3d version:', iso3d.getVersion())
 ```
 
 ## Gestion des Tilesets
 
-Les tilesets définissent les types de tuiles avec leurs propriétés visuelles, assets et paramètres d'affichage.
+Les tilesets définissent les types de tuiles avec leurs propriétés visuelles et gameplay.
 
 ### Format de fichier Tileset
 
@@ -130,24 +191,19 @@ return {
       name = "Grass",
       description = "Herbe verte",
 
-      -- Assets
-      sprite = "assets/tiles/grass.png",
-      spriteVariants = {
-        "assets/tiles/grass_1.png",
-        "assets/tiles/grass_2.png",
-      },
-      color = {0.2, 0.8, 0.3, 1},  -- RGBA
+      -- Visuel
+      color = {0.2, 0.8, 0.3, 1},  -- RGBA (fallback)
+      sprite = "assets/tiles/grass.png",  -- Sprite statique
 
       -- Affichage
-      heightOffset = 0,
       scale = 1.0,
       opacity = 1.0,
-      glow = false,
 
-      -- Animation
+      -- Animation (optionnel)
       animated = false,
       frameCount = 1,
       frameDuration = 0.1,
+      animationFrames = {},
 
       -- Gameplay
       walkable = true,
@@ -166,15 +222,13 @@ return {
 ### Charger un Tileset
 
 ```lua
-local tilesetModule = require('iso3d.tileset')
-
 -- Depuis un fichier
-local tileset = tilesetModule.loadFromFile('tilesets/basic.lua')
+local tileset = iso3d.tileset.loadFromFile('tilesets/simple.lua')
 
--- Créer le tileset par défaut
-local tileset = tilesetModule.createDefault()
+-- Charger les sprites
+tileset:loadSprites()
 
--- Obtenir une définition de tuile
+-- Obtenir une définition
 local grassDef = tileset:getDefinition('g')
 print(grassDef.name, grassDef.color)
 ```
@@ -182,64 +236,35 @@ print(grassDef.name, grassDef.color)
 ### Associer un Tileset à une Map
 
 ```lua
-local mapModule = require('iso3d.map')
-local tilesetModule = require('iso3d.tileset')
-
 -- Charger tileset et map
-local tileset = tilesetModule.loadFromFile('tilesets/basic.lua')
-local gameMap = mapModule.loadFromFile('maps/test.map')
+local tileset = iso3d.tileset.loadFromFile('tilesets/simple.lua')
+local gameMap = iso3d.map.loadFromFile('maps/test.map')
 
 -- Associer le tileset à la map
 gameMap:setTileset(tileset)
+tileset:loadSprites()
 
 -- Obtenir la définition d'une tuile
 local tile = gameMap:getTile(2, 3)
 local tileDef = gameMap:getTileDefinition(tile)
-if tileDef then
-  print("Couleur:", tileDef.color)
-  print("Marchable:", tileDef.walkable)
-end
-```
-
-## Système de Rendu
-
-iso3d utilise une projection isométrique pour convertir des coordonnées 3D en 2D.
-
-**Pour une explication complète du système de rendu, voir [`docs/RENDERING.md`](../docs/RENDERING.md)**
-
-Ce document détaillé couvre:
-- Formules mathématiques de la projection isométrique
-- Rendu des tuiles plates (diamant) et blocs 3D
-- Rendu avec sprites et animations
-- Tri en profondeur (depth sorting)
-- Pipeline complet de rendu
-- Optimisations et performances
-
-### Rendu rapide
-
-```lua
--- Dessiner une map complète
-iso3d.drawMap(gameMap, 'block', {x = 400, y = 300})
-
--- Modes disponibles: 'block' (3D) ou 'flat' (2D)
 ```
 
 ## Gestion des Maps
 
-iso3d inclut un système de gestion de maps avec support de tuiles et hauteurs (-2 à 3 niveaux).
-
 ### Format de fichier Map
 
-Les fichiers `.map` utilisent un format textuel simple :
+Les fichiers `.map` utilisent un format textuel simple avec séparateurs espaces :
 
 ```
 # Commentaire
-type:hauteur:paramètres
+type:height:params
 
-# Exemple:
+# Exemple :
 g:0 g:1 g:2
 w:0 g:1 s:2
 ```
+
+**Note:** La notion de `height` (hauteur) est conservée dans le format de fichier pour compatibilité, mais n'est actuellement pas utilisée par le rendu. Vous pouvez l'utiliser pour stocker des métadonnées.
 
 **Types de tuiles disponibles :**
 - `g` = grass (herbe)
@@ -248,29 +273,23 @@ w:0 g:1 s:2
 - `d` = dirt (terre)
 - `.` = tuile vide
 
-**Hauteur :** -2 à 3 (-2 = le plus bas (eau profonde, vallées), 0 = niveau du sol, 3 = le plus haut (montagnes))
-
 **Paramètres optionnels :** `key=value,key2=value2`
 
-Exemple : `g:2:color=green,variant=1`
+Exemple : `g:0:variant=1`
 
 ### Charger une Map
 
 ```lua
-local mapModule = require('iso3d.map')
+-- Depuis un fichier
+local gameMap = iso3d.map.loadFromFile('maps/test.map')
 
-function love.load()
-  -- Depuis un fichier
-  local gameMap = mapModule.loadFromFile('maps/test.map')
-
-  -- Ou depuis une chaîne
-  local mapString = [[
-    w:-2 w:-1 g:0
-    w:-1 g:0 g:1
-    g:1 s:2 s:3
-  ]]
-  local gameMap = mapModule.loadFromString(mapString)
-end
+-- Depuis une chaîne
+local mapString = [[
+  g:0 w:0 g:0
+  w:0 g:0 g:0
+  g:0 s:0 s:0
+]]
+local gameMap = iso3d.map.loadFromString(mapString)
 ```
 
 ### Utiliser une Map
@@ -278,62 +297,18 @@ end
 ```lua
 -- Parcourir toutes les tuiles
 gameMap:each(function(x, y, tile)
-  print(x, y, tile.type, tile.height)
+  print(x, y, tile.type)
 end)
 
 -- Obtenir une tuile spécifique
 local tile = gameMap:getTile(2, 3)
-if tile then
-  print("Type:", tile.type, "Height:", tile.height)
-end
 
 -- Modifier une tuile
-local newTile = mapModule.Tile.new('s', 2, {color='gray'})
+local newTile = iso3d.map.Tile.new('s', 0, {variant=2})
 gameMap:setTile(5, 5, newTile)
 
 -- Exporter vers string
 local mapString = gameMap:toString()
-```
-
-## Exemple complet
-
-```lua
-local iso3d = require('iso3d')
-
-local gameMap
-local tileset
-
-function love.load()
-  -- Initialiser iso3d
-  iso3d.init({
-    tileWidth = 64,
-    tileHeight = 32,
-    debug = true
-  })
-
-  -- Charger le tileset et la map
-  tileset = iso3d.tileset.loadFromFile('tilesets/basic.lua')
-  gameMap = iso3d.map.loadFromFile('maps/test.map')
-
-  -- Associer le tileset à la map
-  gameMap:setTileset(tileset)
-end
-
-function love.draw()
-  love.graphics.translate(400, 300) -- Centre l'origine
-
-  -- Dessiner la map avec les couleurs du tileset
-  gameMap:each(function(x, y, tile)
-    local tileDef = gameMap:getTileDefinition(tile)
-    local color = tileDef and tileDef.color or {1, 1, 1, 1}
-
-    -- Appliquer le heightOffset du tileset
-    local heightOffset = tileDef and tileDef.heightOffset or 0
-    local z = tile.height * 10 + heightOffset
-
-    iso3d.drawPoint(x, y, z, color)
-  end)
-end
 ```
 
 ## Animations
@@ -344,144 +319,132 @@ iso3d supporte les animations de tuiles avec des séquences d'images.
 
 **Format:**
 - Format PNG avec transparence (canal alpha)
-- Dimensions recommandées: 64x64 pixels (32x32 minimum, 128x128 maximum)
+- Dimensions recommandées: 64x64 pixels
 - Les sprites sont automatiquement redimensionnés
-
-**Sprites statiques:**
-- Un seul fichier PNG
-- Propriété `color` obligatoire (fallback)
 
 **Sprites animés:**
 - Toutes les frames doivent avoir les **mêmes dimensions**
-- `frameCount` doit correspondre au nombre de fichiers dans `animationFrames`
-- `frameDuration` > 0 (en secondes)
-- 3-8 frames recommandées pour une animation fluide
-- Durée par frame: 0.1s-0.5s selon le type d'animation
+- `frameCount` doit correspondre au nombre de fichiers
+- `frameDuration` en secondes (0.1-0.5s recommandé)
+- Propriété `color` obligatoire (fallback)
 
-**Voir `assets/README.md` pour la documentation complète des pré-requis des sprites.**
+**Voir `assets/README.md` pour plus de détails.**
 
 ### Définir une tuile animée
-
-Dans votre fichier tileset, définissez les paramètres d'animation :
 
 ```lua
 w = {
   name = "Water",
 
-  -- Animation activée
   animated = true,
-  frameCount = 4,           -- Nombre de frames dans l'animation
-  frameDuration = 0.3,      -- Durée de chaque frame (secondes)
+  frameCount = 4,
+  frameDuration = 0.3,
 
-  -- Chemins vers les images de l'animation
   animationFrames = {
-    "assets/tiles/water_frame1.png",
-    "assets/tiles/water_frame2.png",
-    "assets/tiles/water_frame3.png",
-    "assets/tiles/water_frame4.png",
+    "assets/tiles/water_1.png",
+    "assets/tiles/water_2.png",
+    "assets/tiles/water_3.png",
+    "assets/tiles/water_4.png",
   },
 
-  -- Couleur de fallback si les sprites ne chargent pas
-  color = {0.2, 0.4, 0.9, 1},
-
+  color = {0.2, 0.4, 0.9, 1},  -- Fallback
   walkable = false
 }
 ```
 
 ### Mettre à jour les animations
 
-Dans votre boucle de jeu Love2D, appelez `updateAnimations` :
-
 ```lua
 function love.update(dt)
-  -- Mettre à jour les animations du tileset
   if tileset then
     tileset:updateAnimations(dt)
   end
 end
 ```
 
-### Charger les sprites
+### Rendu automatique
 
-Chargez les sprites après avoir chargé le tileset :
-
-```lua
-function love.load()
-  -- Charger le tileset
-  tileset = iso3d.tileset.loadFromFile('tilesets/animated.lua')
-
-  -- Charger tous les sprites du tileset
-  tileset:loadSprites()
-
-  -- Charger la map et l'associer au tileset
-  gameMap = iso3d.map.loadFromFile('maps/test.map')
-  gameMap:setTileset(tileset)
-end
-```
-
-### Rendu avec sprites
-
-Le rendu avec sprites est automatique. Si les sprites sont chargés, ils seront utilisés. Sinon, les couleurs de fallback seront utilisées :
+Le rendu utilise automatiquement les sprites si disponibles, sinon les couleurs de fallback :
 
 ```lua
 function love.draw()
-  love.graphics.translate(400, 300)
-
-  -- Rendu de la map (utilisera les sprites si disponibles)
-  iso3d.drawMap(gameMap, 'block', {x = 0, y = 0})
+  iso3d.drawMap(gameMap, {x = 400, y = 300})
 end
 ```
 
-### Sprites sans animation
-
-Pour une tuile statique avec sprite :
+## Exemple complet
 
 ```lua
-g = {
-  name = "Grass",
-  sprite = "assets/tiles/grass.png",  -- Sprite unique
-  color = {0.2, 0.8, 0.3, 1},        -- Fallback
-  animated = false,                   -- Pas d'animation
-}
+local iso3d = require('iso3d')
+
+local gameMap
+local tileset
+local cameraOffset = {x = 0, y = 0}
+
+function love.load()
+  -- Initialiser iso3d
+  iso3d.init({
+    tileWidth = 64,
+    tileHeight = 32,
+    debug = false
+  })
+
+  -- Charger tileset et map
+  tileset = iso3d.tileset.loadFromFile('tilesets/simple.lua')
+  tileset:loadSprites()
+
+  gameMap = iso3d.map.loadFromFile('maps/test.map')
+  gameMap:setTileset(tileset)
+
+  -- Centrer la caméra
+  cameraOffset.x = love.graphics.getWidth() / 2
+  cameraOffset.y = love.graphics.getHeight() / 4
+end
+
+function love.update(dt)
+  -- Mettre à jour les animations
+  tileset:updateAnimations(dt)
+
+  -- Déplacer la caméra avec les flèches
+  local speed = 200 * dt
+  if love.keyboard.isDown('left') then cameraOffset.x = cameraOffset.x + speed end
+  if love.keyboard.isDown('right') then cameraOffset.x = cameraOffset.x - speed end
+  if love.keyboard.isDown('up') then cameraOffset.y = cameraOffset.y + speed end
+  if love.keyboard.isDown('down') then cameraOffset.y = cameraOffset.y - speed end
+end
+
+function love.draw()
+  love.graphics.clear(0.15, 0.15, 0.2)
+
+  -- Dessiner la map
+  iso3d.drawMap(gameMap, cameraOffset)
+
+  -- UI
+  love.graphics.setColor(1, 1, 1, 1)
+  love.graphics.print('iso3d v' .. iso3d.getVersion(), 10, 10)
+  love.graphics.print('Map: ' .. gameMap.width .. 'x' .. gameMap.height, 10, 30)
+end
 ```
 
-### Génération de sprites d'exemple
+## Documentation
 
-Un script Python est fourni pour générer des sprites de test :
-
-```bash
-# Installer pillow (optionnel)
-pip install pillow
-
-# Générer les sprites
-python3 generate_sprites.py
-```
-
-Voir `assets/README.md` pour plus d'informations sur la création de sprites.
+- **[RENDERING.md](../docs/RENDERING.md)** - Explications détaillées du système de rendu
+- **[maps/README.md](../maps/README.md)** - Format et structure des fichiers map
+- **[assets/README.md](../assets/README.md)** - Pré-requis et création de sprites
 
 ## Roadmap
 
-- [x] Structure de base de la librairie
-- [x] Conversion de coordonnées 3D vers 2D
-- [x] Conversion de coordonnées 2D vers 3D
+- [x] Structure modulaire de la librairie
+- [x] Conversion de coordonnées 2D grille ↔ écran
 - [x] Fonctions de dessin basiques (points, lignes)
 - [x] Système de maps avec format textuel
-- [x] Support de tuiles avec hauteurs (-2 à 3 niveaux)
-- [x] Paramètres personnalisables par tuile
-- [x] Système de tilesets pour définir les types de tuiles
-- [x] Propriétés visuelles : sprites, couleurs, animations
-- [x] Propriétés gameplay : walkable, transparent, tags
-- [x] Paramètres d'affichage : heightOffset, scale, opacity, glow
-- [x] Rendu de tuiles isométriques (losange/bloc 3D)
-- [x] Fonction drawTile avec support tileset
-- [x] Fonction drawMap avec rendu complet
-- [x] Tri en profondeur (depth sorting)
-- [x] Modes de rendu : 'block' (3D) et 'flat' (2D)
-- [x] Rendu avec sprites/textures depuis fichiers
+- [x] Système de tilesets
+- [x] Rendu de tuiles isométriques (losange)
+- [x] Rendu avec sprites/textures
 - [x] Support des animations de tuiles
-- [x] Chargement et cache de sprites
-- [x] Système d'animation par frames
-- [x] Fallback automatique vers couleurs si sprites manquants
+- [x] Tri en profondeur (depth sorting)
+- [x] Simplification de l'API (suppression hauteurs 3D)
+- [x] Réorganisation en modules séparés
 - [ ] Système de caméra avancé (zoom, rotation)
 - [ ] Optimisations de performance (culling, batching)
 

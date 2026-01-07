@@ -14,14 +14,14 @@ Ce document explique en détail comment fonctionne le rendu des tuiles dans la l
 
 ### Principe de base
 
-La projection isométrique transforme des coordonnées 3D (x, y, z) en coordonnées 2D d'écran (screenX, screenY).
+La projection isométrique transforme des coordonnées 2D de grille (x, y) en coordonnées 2D d'écran (screenX, screenY).
 
 ### Formule mathématique
 
 ```lua
-function iso3d.toScreen(x, y, z)
+function iso3d.toScreen(x, y)
   local screenX = (x - y) * (tileWidth / 2)
-  local screenY = (x + y) * (tileHeight / 2) - z
+  local screenY = (x + y) * (tileHeight / 2)
   return screenX, screenY
 end
 ```
@@ -32,75 +32,66 @@ end
 ```
 screenX = (x - y) * (tileWidth / 2)
 ```
-- `x - y` : Différence entre les coordonnées monde X et Y
+- `x - y` : Différence entre les coordonnées grille X et Y
 - Multipliée par la moitié de la largeur de tuile (32px par défaut)
 - Résultat: déplacement horizontal sur l'écran
 
 **Axe Y de l'écran (vertical):**
 ```
-screenY = (x + y) * (tileHeight / 2) - z
+screenY = (x + y) * (tileHeight / 2)
 ```
-- `x + y` : Somme des coordonnées monde X et Y
+- `x + y` : Somme des coordonnées grille X et Y
 - Multipliée par la moitié de la hauteur de tuile (16px par défaut)
-- `- z` : Soustraction de la hauteur pour l'élévation
 - Résultat: déplacement vertical sur l'écran
 
-**⚠️ Important - Inversion de l'axe Y:**
+### Convention de coordonnées
 
-Dans le système isométrique, l'axe Z est inversé par rapport à l'axe Y de l'écran:
-- **Z augmente** → screenY **diminue** (l'objet monte à l'écran)
-- **Z diminue** → screenY **augmente** (l'objet descend à l'écran)
+Dans le fichier map:
+- **Première ligne** → Rangée la plus **haute** à l'écran (sommet du losange)
+- **Dernière ligne** → Rangée la plus **basse** à l'écran
 
-C'est pourquoi dans `toScreen()`, on **soustrait** Z de screenY. Cette inversion est cruciale pour le rendu correct des blocs 3D:
-- **Blocs positifs (height > 0)**: on utilise `screenY - blockHeight` pour que le bloc monte
-- **Trous négatifs (height < 0)**: on utilise `screenY + depth` pour que le trou descende
+L'affichage isométrique correspond à une **rotation anti-horaire de 45°** avec écrasement vertical (rapport 2:1).
 
 ### Exemple visuel
 
 ```
-Monde 3D (vue du dessus):       Écran 2D (projection iso):
+Grille 2D (fichier map):        Écran 2D (projection iso):
 
-    Y                                  screenY
-    ^                                    ^
-    |                                   /
-  (0,3)                                /
-    |                              (0,3)
-  (0,2)                              /
-    |                              /
-  (0,1)                          (0,1)
-    |                          /
-  (0,0)-->(1,0)-->(2,0)     (0,0)-->(2,0)----> screenX
-         X
+    (1,1) (2,1) (3,1)                   (1,1)
+    (1,2) (2,2) (3,2)              (1,2)  (2,1)
+    (1,3) (2,3) (3,3)         (1,3)  (2,2)  (3,1)
+                                 (2,3)  (3,2)
+                                    (3,3)
 
-Coordonnées (2, 0, 0):
-  screenX = (2 - 0) * 32 = 64
-  screenY = (2 + 0) * 16 = 32
-  → Point à (64, 32) sur l'écran
+Coordonnées (2, 1):
+  screenX = (2 - 1) * 32 = 32
+  screenY = (2 + 1) * 16 = 48
+  → Point à (32, 48) sur l'écran
 
-Coordonnées (0, 2, 0):
-  screenX = (0 - 2) * 32 = -64
-  screenY = (0 + 2) * 16 = 32
-  → Point à (-64, 32) sur l'écran
+Coordonnées (1, 2):
+  screenX = (1 - 2) * 32 = -32
+  screenY = (1 + 2) * 16 = 48
+  → Point à (-32, 48) sur l'écran
 
-Coordonnées (1, 1, 10):
-  screenX = (1 - 1) * 32 = 0
-  screenY = (1 + 1) * 16 - 10 = 22
-  → Point à (0, 22) sur l'écran (élevé de 10px)
+Coordonnées (2, 2):
+  screenX = (2 - 2) * 32 = 0
+  screenY = (2 + 2) * 16 = 64
+  → Point à (0, 64) sur l'écran (centre, plus bas)
 ```
 
 ## Rendu des Tuiles
 
-### 1. Rendu en Diamant (Flat)
+### 1. Rendu en Losange (Diamond)
 
-**Fonction:** `iso3d.drawTileDiamond(x, y, z, color, opacity)`
+**Fonction:** `iso3d.drawTileDiamond(x, y, color, opacity)`
 
 **Processus:**
 
 ```lua
 -- 1. Convertir la position en coordonnées écran
-local screenX, screenY = iso3d.toScreen(x, y, z)
+local screenX, screenY = iso3d.toScreen(x, y)
 
--- 2. Calculer les 4 sommets du diamant
+-- 2. Calculer les 4 sommets du losange
 local vertices = {
   screenX, screenY - th,        -- Haut
   screenX + tw, screenY,        -- Droite
@@ -115,7 +106,7 @@ love.graphics.polygon('fill', vertices)
 love.graphics.polygon('line', vertices)
 ```
 
-**Forme du diamant:**
+**Forme du losange:**
 
 ```
         (screenX, screenY-th)
@@ -135,114 +126,15 @@ Avec tileWidth=64 et tileHeight=32:
 - tw = 32 (demi-largeur)
 - th = 16 (demi-hauteur)
 
-### 2. Rendu en Bloc 3D (Block)
+### 2. Rendu avec Sprites
 
-**Fonction:** `iso3d.drawTileBlock(x, y, z, height, color, opacity)`
-
-**Processus:**
-
-Le bloc 3D est composé de **3 faces** :
-
-#### Face Gauche (70% de luminosité)
-
-**Pour les blocs positifs (élévation):**
-```lua
-local leftFace = {
-  screenX - tw, screenY,              -- Haut gauche au sol
-  screenX, screenY + th,              -- Bas au sol
-  screenX, screenY + th - blockHeight, -- Bas élevé
-  screenX - tw, screenY - blockHeight  -- Haut gauche élevé
-}
-love.graphics.setColor(r * 0.7, g * 0.7, b * 0.7, a)
-love.graphics.polygon('fill', leftFace)
-```
-
-**Pour les trous négatifs (profondeur):**
-```lua
-local depth = -blockHeight  -- Convertir en positif
-local leftFace = {
-  screenX - tw, screenY,              -- Haut gauche au sol
-  screenX - tw, screenY + depth,      -- Haut gauche au fond
-  screenX, screenY + th + depth,      -- Bas au fond
-  screenX, screenY + th                -- Bas au sol
-}
-```
-
-#### Face Droite (85% de luminosité)
-
-**Pour les blocs positifs:**
-```lua
-local rightFace = {
-  screenX + tw, screenY,              -- Haut droite au sol
-  screenX, screenY + th,              -- Bas au sol
-  screenX, screenY + th - blockHeight, -- Bas élevé
-  screenX + tw, screenY - blockHeight  -- Haut droite élevé
-}
-love.graphics.setColor(r * 0.85, g * 0.85, b * 0.85, a)
-love.graphics.polygon('fill', rightFace)
-```
-
-#### Face Supérieure (100% de luminosité)
-
-**Pour les blocs positifs:**
-```lua
-local topFace = {
-  screenX, screenY - th - blockHeight,        -- Haut
-  screenX + tw, screenY - blockHeight,        -- Droite
-  screenX, screenY + th - blockHeight,        -- Bas
-  screenX - tw, screenY - blockHeight         -- Gauche
-}
-love.graphics.setColor(r, g, b, a)
-love.graphics.polygon('fill', topFace)
-```
-
-**Pour les trous négatifs (face du fond):**
-```lua
-local depth = -blockHeight
-local bottomFace = {
-  screenX, screenY - th + depth,        -- Haut
-  screenX + tw, screenY + depth,        -- Droite
-  screenX, screenY + th + depth,        -- Bas
-  screenX - tw, screenY + depth         -- Gauche
-}
-love.graphics.setColor(r * 0.5, g * 0.5, b * 0.5, a)  -- Plus sombre
-```
-
-**Visualisation d'un bloc:**
-
-```
-Vue isométrique:
-
-          Top (100%)
-            /\
-           /  \
-          /    \
-         /______\
-        /\      /
-       /  \    / Right (85%)
- Left /    \  /
-(70%) \    /\/
-       \  /  /
-        \/  /
-         \/
-```
-
-**Shading (ombrage):**
-- Face gauche: 70% (plus sombre, moins de lumière)
-- Face droite: 85% (ombrage moyen)
-- Face supérieure: 100% (pleine lumière)
-
-Cela crée un effet de profondeur et de volume.
-
-### 3. Rendu avec Sprites
-
-**Fonction:** `iso3d.drawTileSprite(x, y, z, sprite, opacity, scale)`
+**Fonction:** `iso3d.drawTileSprite(x, y, sprite, opacity, scale)`
 
 **Processus:**
 
 ```lua
 -- 1. Convertir la position
-local screenX, screenY = iso3d.toScreen(x, y, z)
+local screenX, screenY = iso3d.toScreen(x, y)
 
 -- 2. Calculer l'échelle du sprite
 local spriteWidth = sprite:getWidth()
@@ -261,409 +153,266 @@ love.graphics.draw(
 ```
 
 **Positionnement:**
-- Le sprite est centré horizontalement sur le tile (screenX)
+- Le sprite est centré horizontalement sur la tuile (screenX)
 - Verticalement: ajusté pour que le bas du sprite soit au niveau de la tuile
 - L'échelle est automatiquement calculée pour s'adapter à la largeur de tuile
 
-### 4. Rendu Combiné (Bloc + Sprite)
+### 3. Rendu Combiné (Tuile avec Tileset)
 
-Pour les tuiles avec hauteur ET sprite:
+Pour les tuiles avec propriétés du tileset:
 
-**Hauteur positive (bloc qui s'élève):**
+**Avec sprite:**
 ```lua
-if blockHeight > 0 then
-  -- 1. Dessiner le bloc 3D (avec opacité réduite)
-  iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity * 0.8)
+function iso3d.drawTile(tile, x, y, tileset)
+  local tileDef = tileset:getDefinition(tile.type)
+  local sprite = tileDef:getCurrentSprite()
 
-  -- 2. Dessiner le sprite au sommet du bloc
-  iso3d.drawTileSprite(x, y, blockHeight, sprite, opacity, scale)
-end
-```
-
-**Hauteur négative (trou avec sprite au fond):**
-```lua
-if blockHeight < 0 then
-  -- 1. Dessiner le trou 3D (avec opacité réduite)
-  iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity * 0.8)
-
-  -- 2. Dessiner le sprite au fond du trou
-  iso3d.drawTileSprite(x, y, blockHeight, sprite, opacity, scale)
-end
-```
-
-**Résultat visuel:**
-
-```
-  [Sprite]       <- Sprite au sommet
-     ||
-     ||
-  [Bloc 3D]      <- Bloc coloré en dessous
-     ||
-  ========       <- Niveau 0
-```
-
-## Tri en Profondeur
-
-### Principe
-
-Pour un rendu correct en isométrique, les tuiles doivent être dessinées **de l'arrière vers l'avant** (back-to-front).
-
-### Algorithme de tri
-
-```lua
--- Parcourir de Y max à Y min (arrière vers avant)
-for y = gameMap.height, 1, -1 do
-  -- Pour chaque Y, parcourir X de gauche à droite
-  for x = 1, gameMap.width do
-    local tile = gameMap:getTile(x, y)
-    if tile then
-      iso3d.drawTile(tile, x, y, tileset, renderMode)
-    end
+  if sprite then
+    -- Utiliser le sprite
+    iso3d.drawTileSprite(x, y, sprite, opacity, scale)
+  else
+    -- Fallback: utiliser la couleur
+    iso3d.drawTileDiamond(x, y, color, opacity)
   end
 end
 ```
 
-### Pourquoi cet ordre?
+**Animations:**
+Pour les tuiles animées, `getCurrentSprite()` retourne la frame actuelle de l'animation selon le temps écoulé.
 
-En projection isométrique:
-- Les tuiles avec Y **élevé** apparaissent **en arrière** sur l'écran
-- Les tuiles avec Y **faible** apparaissent **en avant** sur l'écran
+## Tri en Profondeur
 
-**Exemple visuel:**
+### Ordre de dessin
 
-```
-Map 3x3 (vue du dessus):        Ordre de rendu:
-  1,3  2,3  3,3                    1  2  3
-  1,2  2,2  3,2                    4  5  6
-  1,1  2,1  3,1                    7  8  9
+Pour un rendu correct en isométrique, les tuiles doivent être dessinées **de l'arrière vers l'avant** (back-to-front).
 
-Vue isométrique:
-     1  2  3
-      \ | /
-    4  \|/  6
-     \  5  /
-      \ | /
-    7  \|/  9
-        8
-```
-
-Si on dessinait dans l'ordre inverse (Y=1 vers Y=3), les tuiles arrières cacheraient les tuiles avant!
-
-### Cas des hauteurs
-
-Les tuiles hautes sont dessinées dans le même ordre Y, mais leur hauteur est prise en compte dans la coordonnée Z:
+**Règle:** Dessiner d'abord les tuiles avec Y plus grand, puis celles avec Y plus petit.
 
 ```lua
-local z = tile.height * 10 + heightOffset
+for y = gameMap.height, 1, -1 do  -- Y décroissant
+  for x = 1, gameMap.width do
+    iso3d.drawTile(tile, x, y, tileset)
+  end
+end
 ```
 
-Le rendu back-to-front + la coordonnée Y d'écran qui intègre Z garantit le bon ordre.
+### Exemple visuel
+
+```
+Map 3x3:
+
+    1 2 3        Ordre de dessin:
+    4 5 6        7, 8, 9  (ligne Y=3)
+    7 8 9        4, 5, 6  (ligne Y=2)
+                 1, 2, 3  (ligne Y=1)
+
+Vue isométrique résultante:
+         1
+       4   2
+     7   5   3
+       8   6
+         9
+```
+
+En dessinant Y=3 en premier (tuiles 7,8,9), puis Y=2 (4,5,6), puis Y=1 (1,2,3), on assure que les tuiles "devant" (Y petit) recouvrent celles "derrière" (Y grand).
 
 ## Pipeline de Rendu
 
-### Fonction principale: `iso3d.drawMap()`
+### Processus complet
 
-**Étape par étape:**
+1. **Initialisation**
+   ```lua
+   iso3d.init({tileWidth = 64, tileHeight = 32})
+   tileset = iso3d.tileset.loadFromFile('tilesets/simple.lua')
+   tileset:loadSprites()
+   gameMap = iso3d.map.loadFromFile('maps/test.map')
+   gameMap:setTileset(tileset)
+   ```
+
+2. **Update (chaque frame)**
+   ```lua
+   function love.update(dt)
+     tileset:updateAnimations(dt)  -- Avance les animations
+   end
+   ```
+
+3. **Rendu (chaque frame)**
+   ```lua
+   function love.draw()
+     iso3d.drawMap(gameMap, {x = 400, y = 300})
+   end
+   ```
+
+### Détail de `drawMap`
 
 ```lua
-function iso3d.drawMap(gameMap, renderMode, offset)
-  -- 1. Préparation
-  renderMode = renderMode or 'block'
-  offset = offset or {x = 0, y = 0}
-
-  -- 2. Appliquer l'offset caméra
+function iso3d.drawMap(gameMap, offset)
   love.graphics.push()
-  love.graphics.translate(offset.x, offset.y)
+  love.graphics.translate(offset.x, offset.y)  -- Décalage caméra
 
-  -- 3. Boucle de rendu (back-to-front)
+  -- Parcourir back-to-front
   for y = gameMap.height, 1, -1 do
     for x = 1, gameMap.width do
       local tile = gameMap:getTile(x, y)
       if tile then
-        iso3d.drawTile(tile, x, y, gameMap:getTileset(), renderMode)
+        iso3d.drawTile(tile, x, y, gameMap:getTileset())
       end
     end
   end
 
-  -- 4. Restaurer l'état graphique
   love.graphics.pop()
-  love.graphics.setColor(1, 1, 1, 1)
+  love.graphics.setColor(1, 1, 1, 1)  -- Reset couleur
 end
 ```
 
-### Fonction de rendu de tuile: `iso3d.drawTile()`
-
-**Arbre de décision:**
-
-```
-drawTile()
-    |
-    ├─> Récupérer tileDef du tileset
-    |
-    ├─> Calculer propriétés (color, opacity, scale, z)
-    |
-    ├─> Récupérer sprite (si disponible)
-    |
-    └─> Décider du rendu:
-         |
-         ├─> Si sprite existe:
-         |    |
-         |    ├─> Mode 'flat':
-         |    |    └─> drawTileSprite(x, y, z)
-         |    |
-         |    └─> Mode 'block':
-         |         ├─> Si height > 0:
-         |         |    ├─> drawTileBlock(x,y,0,h) (bloc qui s'élève)
-         |         |    └─> drawTileSprite(x,y,h) (sprite au sommet)
-         |         |
-         |         ├─> Si height < 0:
-         |         |    ├─> drawTileBlock(x,y,0,h) (trou, h négatif)
-         |         |    └─> drawTileSprite(x,y,h) (sprite au fond)
-         |         |
-         |         └─> Si height = 0:
-         |              └─> drawTileSprite(x, y, 0)
-         |
-         └─> Sinon (pas de sprite):
-              |
-              ├─> Mode 'flat':
-              |    └─> drawTileDiamond()
-              |
-              └─> Mode 'block':
-                   ├─> Si height > 0:
-                   |    └─> drawTileBlock(x,y,0,h) (s'élève)
-                   |
-                   ├─> Si height < 0:
-                   |    └─> drawTileBlock(x,y,0,h) (trou, h négatif)
-                   |
-                   └─> Si height = 0:
-                        └─> drawTileDiamond()
-```
-
-### Modes de rendu
-
-**Mode 'flat':**
-- Tuiles plates (diamants)
-- Pas d'effet 3D
-- Sprites dessinés à la hauteur Z
-- Plus rapide, style 2.5D
-
-**Mode 'block':**
-- Blocs 3D avec volume
-- Ombrage sur les faces
-- Sprites au sommet des blocs
-- Plus réaliste, vrai 3D isométrique
-
-## Gestion des Hauteurs
-
-### Conversion hauteur → pixels
+### Détail de `drawTile`
 
 ```lua
-local z = tile.height * 10 + heightOffset
-```
+function iso3d.drawTile(tile, x, y, tileset)
+  -- 1. Récupérer les propriétés du tileset
+  local tileDef = tileset:getDefinition(tile.type)
+  local color = tileDef.color
+  local opacity = tileDef.opacity
+  local scale = tileDef.scale
 
-- Chaque niveau de hauteur = 10 pixels
-- heightOffset (du tileset) permet un ajustement fin
+  -- 2. Obtenir le sprite actuel (frame d'animation si animé)
+  local sprite = tileDef:getCurrentSprite()
 
-**Exemple:**
-```
-Hauteur -2: z = -20 pixels (sous le sol)
-Hauteur -1: z = -10 pixels
-Hauteur  0: z =   0 pixels (niveau sol)
-Hauteur  1: z =  10 pixels
-Hauteur  2: z =  20 pixels
-Hauteur  3: z =  30 pixels
-```
+  -- 3. Rendu
+  if sprite then
+    iso3d.drawTileSprite(x, y, sprite, opacity, scale)
+  else
+    iso3d.drawTileDiamond(x, y, color, opacity)
+  end
 
-### Rendu des hauteurs négatives
-
-**Pour les hauteurs positives (height > 0):**
-```lua
-local blockHeight = tile.height * 10
-iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity)
--- Exemple: height=2 → drawTileBlock(x, y, 0, 20, ...)
--- Le bloc s'élève de z=0 à z=20
--- Faces extérieures: gauche (70%), droite (85%), dessus (100%)
-```
-
-**Pour les hauteurs négatives (height < 0):**
-```lua
-local blockHeight = tile.height * 10  -- négatif
-iso3d.drawTileBlock(x, y, 0, blockHeight, color, opacity)
--- Exemple: height=-2 → blockHeight=-20
---         → drawTileBlock(x, y, 0, -20, ...)
--- Le trou descend de z=0 à z=-20
--- Faces intérieures inversées: gauche (70%), droite (85%), fond (50%)
-```
-
-**Différences clés entre blocs positifs et négatifs:**
-
-Hauteurs positives (blocs qui s'élèvent):
-- Faces extérieures visibles
-- Faces montent depuis z=0
-- Face supérieure au sommet (100% luminosité)
-- Vertex dans le sens normal
-
-Hauteurs négatives (trous/vallées):
-- Faces intérieures visibles (inversées)
-- Faces descendent depuis z=0
-- Face inférieure au fond du trou (50% luminosité)
-- Vertex dans le sens inversé pour montrer l'intérieur
-
-**Visualisation:**
-
-```
-Hauteur 2:          Hauteur 0:          Hauteur -1:
-   ___                 ___              =========
-  |   |               |___|                ___
-  |   |              =========            |___|
-  |___|                                  =========
-=========
-```
-
-## Animations
-
-### Update des animations
-
-```lua
-function love.update(dt)
-  tileset:updateAnimations(dt)
-end
-```
-
-**Processus:**
-
-```lua
-function TileDefinition:updateAnimation(dt)
-  self._animationTimer = self._animationTimer + dt
-
-  if self._animationTimer >= self.frameDuration then
-    self._animationTimer = self._animationTimer - self.frameDuration
-    self._currentFrame = (self._currentFrame % self.frameCount) + 1
+  -- 4. Debug (si activé)
+  if iso3d.config.debug then
+    local screenX, screenY = iso3d.toScreen(x, y)
+    love.graphics.print(tile.type, screenX - 10, screenY - 5)
   end
 end
 ```
-
-### Récupération de la frame courante
-
-```lua
-function TileDefinition:getCurrentSprite()
-  if self.animated and #self._loadedSprites > 0 then
-    return self._loadedSprites[self._currentFrame]
-  end
-  return self._loadedSprites.main
-end
-```
-
-### Rendu animé
-
-Chaque appel à `drawTile()` récupère la frame courante via `getCurrentSprite()`, donc l'animation est automatique.
 
 ## Optimisations
 
-### 1. Cache des sprites
+### 1. Culling (Future)
+
+Ne dessiner que les tuiles visibles à l'écran:
 
 ```lua
--- Chargement une seule fois
-tileset:loadSprites()
+function isVisible(x, y, cameraOffset, screenWidth, screenHeight)
+  local screenX, screenY = iso3d.toScreen(x, y)
+  screenX = screenX + cameraOffset.x
+  screenY = screenY + cameraOffset.y
 
--- Réutilisation à chaque frame
-local sprite = tileDef:getCurrentSprite()
-```
-
-**Avantages:**
-- Pas de rechargement à chaque frame
-- Mémoire GPU optimisée
-- Performances stables
-
-### 2. Batching implicite
-
-Love2D groupe automatiquement les appels de rendu similaires (même texture, même mode).
-
-### 3. Culling (non implémenté actuellement)
-
-**Optimisation future possible:**
-
-```lua
--- Ne dessiner que les tuiles visibles
-if isVisibleOnScreen(screenX, screenY) then
-  iso3d.drawTile(tile, x, y, tileset, renderMode)
+  return screenX > -tileWidth and screenX < screenWidth + tileWidth
+     and screenY > -tileHeight and screenY < screenHeight + tileHeight
 end
 ```
 
-### 4. Dirty rectangles (non implémenté)
+### 2. Sprite Batching (Future)
 
-**Optimisation future:**
-- Marquer les zones modifiées
-- Ne redessiner que ces zones
-- Utile pour les grandes maps statiques
-
-## Exemples Pratiques
-
-### Exemple 1: Tuile plate simple
+Grouper les appels de dessin pour réduire les changements d'état GPU:
 
 ```lua
--- Tuile herbe à (5, 5) au niveau du sol
-iso3d.drawTileDiamond(5, 5, 0, {0.2, 0.8, 0.3, 1}, 1.0)
+-- Utiliser SpriteBatch de Love2D
+local batch = love.graphics.newSpriteBatch(tileset.image, 1000)
+
+-- Ajouter toutes les tuiles au batch
+for y = gameMap.height, 1, -1 do
+  for x = 1, gameMap.width do
+    batch:add(quad, screenX, screenY)
+  end
+end
+
+-- Dessiner tout en une fois
+love.graphics.draw(batch)
 ```
 
-**Calculs:**
-```
-screenX = (5 - 5) * 32 = 0
-screenY = (5 + 5) * 16 - 0 = 80
-```
+### 3. Cache de coordonnées écran
 
-Diamant centré à (0, 80) sur l'écran.
-
-### Exemple 2: Bloc 3D élevé
+Pré-calculer les coordonnées écran si la map ne bouge pas:
 
 ```lua
--- Pierre à (3, 2) avec hauteur 2
-local tile = {type = 's', height = 2}
-local z = 2 * 10 = 20
-
-iso3d.drawTileBlock(3, 2, 0, 20, {0.5, 0.5, 0.5, 1}, 1.0)
+local screenCoords = {}
+for y = 1, gameMap.height do
+  screenCoords[y] = {}
+  for x = 1, gameMap.width do
+    screenCoords[y][x] = {iso3d.toScreen(x, y)}
+  end
+end
 ```
 
-**Calculs:**
-```
-screenX = (3 - 2) * 32 = 32
-screenY = (3 + 2) * 16 = 80
-```
+### 4. Animations optimisées
 
-Bloc dessiné à (32, 80) avec 20px de hauteur.
-
-### Exemple 3: Map complète 3x3
+Le système d'animation actuel:
+- Calcule la frame actuelle à chaque appel (O(1))
+- Pas de pré-calcul nécessaire
+- Très efficace même avec beaucoup de tuiles animées
 
 ```lua
-local gameMap = iso3d.map.loadFromString([[
-  g:0 g:1 s:2
-  w:-1 g:0 g:1
-  g:0 g:0 g:0
-]])
+function TileDefinition:getCurrentSprite()
+  if not self.animated or not self.frames then
+    return self.frames and self.frames[1] or nil
+  end
 
-iso3d.drawMap(gameMap, 'block', {x = 400, y = 300})
+  local frameIndex = math.floor(self.currentTime / self.frameDuration) % self.frameCount + 1
+  return self.frames[frameIndex]
+end
 ```
 
-**Ordre de rendu:**
-1. (1,3), (2,3), (3,3) - Ligne arrière
-2. (1,2), (2,2), (3,2) - Ligne milieu
-3. (1,1), (2,1), (3,1) - Ligne avant
+## Architecture Modulaire
 
-Chaque tuile est rendue avec sa hauteur respective.
+La librairie est organisée en modules séparés pour la maintenabilité:
 
-## Résumé
+- **iso3d/init.lua** - Point d'entrée, exports
+- **iso3d/projection.lua** - Conversion coordonnées
+- **iso3d/render.lua** - Rendu des tuiles et maps
+- **iso3d/debug.lua** - Visualisation et debug
+- **iso3d/map.lua** - Gestion des maps
+- **iso3d/tileset.lua** - Gestion des tilesets
 
-Le système de rendu iso3d fonctionne en plusieurs étapes:
+Cette séparation permet:
+- Code plus lisible et maintenable
+- Tests unitaires plus faciles
+- Modifications ciblées sans impact sur les autres modules
+- Réutilisation possible des modules individuellement
 
-1. **Projection**: Transformation 3D→2D avec `toScreen()`
-2. **Choix du rendu**: Sprite ou couleur, flat ou block
-3. **Tri en profondeur**: Back-to-front (Y élevé vers Y bas)
-4. **Dessin**: Polygones ou sprites avec Love2D
-5. **Animations**: Frame courante mise à jour automatiquement
+## Performances
 
-**Points clés:**
-- Projection isométrique simple et efficace
-- Tri par ordre Y pour occlusion correcte
-- Support sprites + couleurs de fallback
-- Ombrage automatique sur blocs 3D
-- Animations fluides avec delta time
+### Benchmarks (estimation)
+
+Map 64x64 (4096 tuiles):
+- Rendu avec couleurs: ~60 FPS
+- Rendu avec sprites: ~55 FPS
+- Rendu avec animations: ~50 FPS
+
+Map 128x128 (16384 tuiles):
+- Avec culling: ~60 FPS
+- Sans culling: ~20 FPS
+
+*Note: Les performances réelles dépendent du matériel et du nombre de tuiles animées.*
+
+### Recommandations
+
+1. **Activer le culling** pour les grandes maps (>64x64)
+2. **Limiter les animations** aux tuiles visibles
+3. **Utiliser SpriteBatch** pour les tilesets avec beaucoup de tuiles
+4. **Pré-charger les sprites** au chargement de la map
+5. **Éviter les allocations** dans la boucle de rendu
+
+## Conclusion
+
+Le système de rendu iso3d offre:
+- ✅ Projection isométrique mathématiquement correcte
+- ✅ Support des sprites avec animations
+- ✅ Tri en profondeur automatique
+- ✅ Architecture modulaire et maintenable
+- ✅ Fallback automatique (couleurs si pas de sprite)
+- ✅ Mode debug pour le développement
+- 🔄 Optimisations futures (culling, batching)
+
+Pour plus d'informations, voir:
+- **[iso3d/README.md](../iso3d/README.md)** - Documentation complète de l'API
+- **[maps/README.md](../maps/README.md)** - Format des fichiers map
+- **[assets/README.md](../assets/README.md)** - Création de sprites
