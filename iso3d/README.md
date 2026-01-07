@@ -46,6 +46,7 @@ Les options de configuration disponibles :
 - `tileWidth` : Largeur d'une tuile isométrique (défaut: 64)
 - `tileHeight` : Hauteur d'une tuile isométrique (défaut: 32)
 - `debug` : Mode debug pour afficher les types de tuiles (défaut: false)
+- `zoom` : Niveau de zoom (défaut: 1.0, range: 0.2 à 5.0)
 
 ### Convention de coordonnées
 
@@ -58,6 +59,73 @@ E F G H   →   E F B (diagonale suivante)
 I J K L   →   I J K C (diagonale suivante)
 M N O P   →   M N O L P (coin bas)
 ```
+
+## Zoom
+
+iso3d supporte le zoom dynamique pour agrandir ou réduire l'affichage de la map.
+
+### `iso3d.setZoom(zoom)`
+Définit le niveau de zoom.
+
+```lua
+iso3d.setZoom(2.0)  -- Zoom 2x (agrandir)
+iso3d.setZoom(0.5)  -- Zoom 0.5x (réduire)
+```
+
+**Paramètres:**
+- `zoom` : Facteur de zoom (nombre positif)
+  - `1.0` = zoom normal (100%)
+  - `> 1.0` = zoom avant (agrandir)
+  - `< 1.0` = zoom arrière (réduire)
+  - Range recommandé : 0.2 à 5.0
+
+**Validation:**
+- La fonction génère une erreur si zoom ≤ 0
+
+### `iso3d.getZoom()`
+Retourne le niveau de zoom actuel.
+
+```lua
+local currentZoom = iso3d.getZoom()
+print(string.format('Zoom: %.2fx', currentZoom))
+```
+
+**Retourne:** Nombre (facteur de zoom actuel)
+
+### Exemple d'utilisation
+
+```lua
+function love.wheelmoved(x, y)
+  -- Zoom avec la molette de souris
+  if y > 0 then
+    -- Molette vers le haut = zoom avant
+    local zoom = iso3d.getZoom()
+    iso3d.setZoom(math.min(zoom * 1.1, 5.0))
+  elseif y < 0 then
+    -- Molette vers le bas = zoom arrière
+    local zoom = iso3d.getZoom()
+    iso3d.setZoom(math.max(zoom / 1.1, 0.2))
+  end
+end
+
+function love.keypressed(key)
+  -- Zoom avec les touches + et -
+  if key == '=' or key == '+' then
+    local zoom = iso3d.getZoom()
+    iso3d.setZoom(math.min(zoom * 1.2, 5.0))
+  elseif key == '-' then
+    local zoom = iso3d.getZoom()
+    iso3d.setZoom(math.max(zoom / 1.2, 0.2))
+  end
+end
+```
+
+### Comportement
+
+- Le zoom affecte toutes les projections de coordonnées (toScreen, toWorld)
+- Les tuiles (losanges et sprites) sont automatiquement redimensionnées
+- Le zoom s'applique de manière uniforme sur les axes X et Y
+- La projection isométrique reste correcte à tous les niveaux de zoom
 
 ## API de projection
 
@@ -445,7 +513,8 @@ end
 - [x] Tri en profondeur (depth sorting)
 - [x] Simplification de l'API (suppression hauteurs 3D)
 - [x] Réorganisation en modules séparés
-- [ ] Système de caméra avancé (zoom, rotation)
+- [x] Système de zoom dynamique
+- [ ] Système de caméra avancé (rotation)
 - [ ] Optimisations de performance (culling, batching)
 
 ## Licence

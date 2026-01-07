@@ -10,8 +10,9 @@ render.projection = nil
 -- Draw an isometric tile (diamond shape)
 function render.drawTileDiamond(x, y, color, opacity)
   local screenX, screenY = render.projection.toScreen(x, y)
-  local tw = render.config.tileWidth / 2
-  local th = render.config.tileHeight / 2
+  local zoom = render.config.zoom
+  local tw = render.config.tileWidth / 2 * zoom
+  local th = render.config.tileHeight / 2 * zoom
 
   -- Set color and opacity
   if color then
@@ -44,8 +45,9 @@ function render.drawTileSprite(x, y, sprite, opacity, scale)
   if not sprite then return end
 
   local screenX, screenY = render.projection.toScreen(x, y)
-  local tw = render.config.tileWidth
-  local th = render.config.tileHeight
+  local zoom = render.config.zoom
+  local tw = render.config.tileWidth * zoom
+  local th = render.config.tileHeight * zoom
 
   opacity = opacity or 1.0
   scale = scale or 1.0
@@ -56,7 +58,7 @@ function render.drawTileSprite(x, y, sprite, opacity, scale)
   local spriteWidth = sprite:getWidth()
   local spriteHeight = sprite:getHeight()
 
-  -- Scale the sprite to fit the tile width
+  -- Scale the sprite to fit the tile width (including zoom)
   local spriteScale = (tw / spriteWidth) * scale
 
   -- Draw sprite centered on the tile

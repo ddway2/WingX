@@ -10,9 +10,10 @@ projection.config = nil
 function projection.toScreen(x, y)
   local tw = projection.config.tileWidth / 2
   local th = projection.config.tileHeight / 2
+  local zoom = projection.config.zoom
 
-  local screenX = (x - y) * tw
-  local screenY = (x + y) * th
+  local screenX = (x - y) * tw * zoom
+  local screenY = (x + y) * th * zoom
 
   return screenX, screenY
 end
@@ -21,6 +22,11 @@ end
 function projection.toWorld(screenX, screenY)
   local tw = projection.config.tileWidth / 2
   local th = projection.config.tileHeight / 2
+  local zoom = projection.config.zoom
+
+  -- Apply inverse zoom
+  screenX = screenX / zoom
+  screenY = screenY / zoom
 
   local y = (screenX / tw + screenY / th) / 2
   local x = y + screenX / tw

@@ -11,7 +11,8 @@ local iso3d = {
 iso3d.config = {
   tileWidth = 64,
   tileHeight = 32,
-  debug = false
+  debug = false,
+  zoom = 1.0  -- Zoom level (1.0 = normal, 2.0 = 2x zoom, 0.5 = zoom out)
 }
 
 -- Load submodules
@@ -52,6 +53,19 @@ end
 -- Get library version
 function iso3d.getVersion()
   return iso3d._VERSION
+end
+
+-- Set zoom level
+function iso3d.setZoom(zoom)
+  if type(zoom) ~= 'number' or zoom <= 0 then
+    error('Zoom must be a positive number')
+  end
+  iso3d.config.zoom = zoom
+end
+
+-- Get current zoom level
+function iso3d.getZoom()
+  return iso3d.config.zoom
 end
 
 -- Export projection functions
