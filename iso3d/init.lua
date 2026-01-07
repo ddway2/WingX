@@ -12,7 +12,8 @@ iso3d.config = {
   tileWidth = 64,
   tileHeight = 32,
   debug = false,
-  zoom = 1.0  -- Zoom level (1.0 = normal, 2.0 = 2x zoom, 0.5 = zoom out)
+  zoom = 1.0,     -- Zoom level (1.0 = normal, 2.0 = 2x zoom, 0.5 = zoom out)
+  rotation = 0    -- Camera rotation (0 = north, 1 = east, 2 = south, 3 = west)
 }
 
 -- Load submodules
@@ -20,14 +21,18 @@ local modulePath = (...):gsub('%.init$', '')
 iso3d.map = require(modulePath .. '.map')
 iso3d.tileset = require(modulePath .. '.tileset')
 
+local camera = require(modulePath .. '.camera')
 local projection = require(modulePath .. '.projection')
 local render = require(modulePath .. '.render')
 local debug = require(modulePath .. '.debug')
 
 -- Inject config references into submodules
+camera.config = iso3d.config
 projection.config = iso3d.config
+projection.camera = camera
 render.config = iso3d.config
 render.projection = projection
+render.camera = camera
 debug.config = iso3d.config
 debug.projection = projection
 debug.version = iso3d._VERSION
@@ -66,6 +71,33 @@ end
 -- Get current zoom level
 function iso3d.getZoom()
   return iso3d.config.zoom
+end
+
+-- Set camera rotation (0-3)
+function iso3d.setRotation(rotation)
+  if type(rotation) ~= 'number' then
+    error('Rotation must be a number')
+  end
+  rotation = math.floor(rotation)
+  if rotation < 0 or rotation > 3 then
+    error('Rotation must be between 0 and 3 (0=north, 1=east, 2=south, 3=west)')
+  end
+  iso3d.config.rotation = rotation
+end
+
+-- Get current camera rotation
+function iso3d.getRotation()
+  return iso3d.config.rotation
+end
+
+-- Rotate camera clockwise (90°)
+function iso3d.rotateClockwise()
+  iso3d.config.rotation = (iso3d.config.rotation + 1) % 4
+end
+
+-- Rotate camera counter-clockwise (90°)
+function iso3d.rotateCounterClockwise()
+  iso3d.config.rotation = (iso3d.config.rotation - 1) % 4
 end
 
 -- Export projection functions

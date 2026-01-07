@@ -75,6 +75,7 @@ function love.load()
   print('  Mouse wheel: Zoom in/out')
   print('  +/=: Zoom in')
   print('  -: Zoom out')
+  print('  Q/E: Rotate camera')
   print('  D: Toggle debug mode')
   print('  R: Reset camera')
   print('  1-9: Load different maps')
@@ -155,6 +156,20 @@ function love.keypressed(key)
     iso3d.setZoom(newZoom)
     print(string.format('Zoom: %.2fx', newZoom))
   end
+
+  -- Rotate camera counter-clockwise
+  if key == 'q' then
+    iso3d.rotateCounterClockwise()
+    local rotationNames = {'North', 'East', 'South', 'West'}
+    print('Rotation: ' .. rotationNames[iso3d.getRotation() + 1])
+  end
+
+  -- Rotate camera clockwise
+  if key == 'e' then
+    iso3d.rotateClockwise()
+    local rotationNames = {'North', 'East', 'South', 'West'}
+    print('Rotation: ' .. rotationNames[iso3d.getRotation() + 1])
+  end
 end
 
 function love.wheelmoved(x, y)
@@ -196,6 +211,10 @@ function love.draw()
   uiY = uiY + 20
 
   love.graphics.print(string.format('Zoom: %.2fx', iso3d.getZoom()), 10, uiY)
+  uiY = uiY + 20
+
+  local rotationNames = {'North', 'East', 'South', 'West'}
+  love.graphics.print('Rotation: ' .. rotationNames[iso3d.getRotation() + 1], 10, uiY)
   uiY = uiY + 30
 
   -- Controls
@@ -205,6 +224,8 @@ function love.draw()
   love.graphics.print('  Arrows: Move camera', 10, uiY)
   uiY = uiY + 18
   love.graphics.print('  Wheel/+/-: Zoom', 10, uiY)
+  uiY = uiY + 18
+  love.graphics.print('  Q/E: Rotate camera', 10, uiY)
   uiY = uiY + 18
   love.graphics.print('  D: Toggle debug', 10, uiY)
   uiY = uiY + 18
