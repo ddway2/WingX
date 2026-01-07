@@ -72,6 +72,9 @@ function love.load()
   print('')
   print('Controls:')
   print('  Arrow keys: Move camera')
+  print('  Mouse wheel: Zoom in/out')
+  print('  +/=: Zoom in')
+  print('  -: Zoom out')
   print('  D: Toggle debug mode')
   print('  R: Reset camera')
   print('  1-9: Load different maps')
@@ -136,6 +139,37 @@ function love.keypressed(key)
     local prevIndex = ((currentMapIndex - 2) % #maps) + 1
     loadMap(prevIndex)
   end
+
+  -- Zoom in
+  if key == '=' or key == '+' or key == 'kp+' then
+    local currentZoom = iso3d.getZoom()
+    local newZoom = math.min(currentZoom * 1.2, 5.0)  -- Max 5x zoom
+    iso3d.setZoom(newZoom)
+    print(string.format('Zoom: %.2fx', newZoom))
+  end
+
+  -- Zoom out
+  if key == '-' or key == 'kp-' then
+    local currentZoom = iso3d.getZoom()
+    local newZoom = math.max(currentZoom / 1.2, 0.2)  -- Min 0.2x zoom
+    iso3d.setZoom(newZoom)
+    print(string.format('Zoom: %.2fx', newZoom))
+  end
+end
+
+function love.wheelmoved(x, y)
+  -- Zoom with mouse wheel
+  if y > 0 then
+    -- Scroll up = zoom in
+    local currentZoom = iso3d.getZoom()
+    local newZoom = math.min(currentZoom * 1.1, 5.0)  -- Max 5x zoom
+    iso3d.setZoom(newZoom)
+  elseif y < 0 then
+    -- Scroll down = zoom out
+    local currentZoom = iso3d.getZoom()
+    local newZoom = math.max(currentZoom / 1.1, 0.2)  -- Min 0.2x zoom
+    iso3d.setZoom(newZoom)
+  end
 end
 
 function love.draw()
@@ -159,6 +193,9 @@ function love.draw()
   uiY = uiY + 20
 
   love.graphics.print('Debug: ' .. tostring(iso3d.config.debug), 10, uiY)
+  uiY = uiY + 20
+
+  love.graphics.print(string.format('Zoom: %.2fx', iso3d.getZoom()), 10, uiY)
   uiY = uiY + 30
 
   -- Controls
@@ -166,6 +203,8 @@ function love.draw()
   love.graphics.print('Controls:', 10, uiY)
   uiY = uiY + 18
   love.graphics.print('  Arrows: Move camera', 10, uiY)
+  uiY = uiY + 18
+  love.graphics.print('  Wheel/+/-: Zoom', 10, uiY)
   uiY = uiY + 18
   love.graphics.print('  D: Toggle debug', 10, uiY)
   uiY = uiY + 18
