@@ -1,0 +1,11 @@
+# Test map - Small terrain with water and elevation
+# 8x8 grid demonstrating all height levels (-2 to 3)
+
+g:0 g:0 g:0 g:1 g:1 g:1 g:2 g:2
+g:0 g:0 g:1 g:1 w:-1 g:1 g:2 g:3
+g:0 g:1 g:1 w:-1 w:-2 w:-1 g:2 g:3
+g:1 g:1 w:-1 w:-2 s:1 w:-1 g:2 g:3
+g:1 g:1 w:-1 s:1 s:2 w:-1 g:2 g:2
+g:1 g:1 g:1 w:-1 w:-1 w:-1 g:2 g:2
+g:1 g:2 g:2 g:2 g:2 g:2 g:2 g:2
+g:2 g:2 g:3 g:3 g:3 g:3 g:2 g:2

@@ -23,3 +23,7 @@ luac.out
 # Temporary files
 *.tmp
 *.log
+
+# Generated sprites (examples only, users should provide their own)
+assets/tiles/*.png
+!assets/tiles/.gitkeep

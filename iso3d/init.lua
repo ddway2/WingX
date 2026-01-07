@@ -1,14 +1,11 @@
--- iso3d - Isometric 3D library for Love2D
--- Version: 0.1.0
+-- iso3d - Isometric rendering library for Love2D
+-- Version: 0.4.0
 
 local iso3d = {
-  _VERSION = '0.1.0',
-  _DESCRIPTION = 'Isometric 3D rendering library for Love2D',
+  _VERSION = '0.4.0',
+  _DESCRIPTION = 'Isometric rendering library for Love2D',
   _LICENSE = 'MIT'
 }
-
--- Module private variables
-local private = {}
 
 -- Module configuration
 iso3d.config = {
@@ -16,6 +13,23 @@ iso3d.config = {
   tileHeight = 32,
   debug = false
 }
+
+-- Load submodules
+local modulePath = (...):gsub('%.init$', '')
+iso3d.map = require(modulePath .. '.map')
+iso3d.tileset = require(modulePath .. '.tileset')
+
+local projection = require(modulePath .. '.projection')
+local render = require(modulePath .. '.render')
+local debug = require(modulePath .. '.debug')
+
+-- Inject config references into submodules
+projection.config = iso3d.config
+render.config = iso3d.config
+render.projection = projection
+debug.config = iso3d.config
+debug.projection = projection
+debug.version = iso3d._VERSION
 
 -- Initialize the library
 function iso3d.init(config)
@@ -40,60 +54,19 @@ function iso3d.getVersion()
   return iso3d._VERSION
 end
 
--- Module placeholder functions (to be implemented)
+-- Export projection functions
+iso3d.toScreen = projection.toScreen
+iso3d.toWorld = projection.toWorld
 
--- Convert 3D coordinates to 2D screen coordinates
-function iso3d.toScreen(x, y, z)
-  -- Placeholder: basic isometric projection
-  local screenX = (x - y) * (iso3d.config.tileWidth / 2)
-  local screenY = (x + y) * (iso3d.config.tileHeight / 2) - z
-  return screenX, screenY
-end
+-- Export render functions
+iso3d.drawTileDiamond = render.drawTileDiamond
+iso3d.drawTileSprite = render.drawTileSprite
+iso3d.drawTile = render.drawTile
+iso3d.drawMap = render.drawMap
 
--- Convert 2D screen coordinates to 3D coordinates (inverse projection)
-function iso3d.toWorld(screenX, screenY, z)
-  z = z or 0
-  -- Placeholder: basic inverse isometric projection
-  local tw = iso3d.config.tileWidth / 2
-  local th = iso3d.config.tileHeight / 2
-
-  local y = (screenX / tw + (screenY + z) / th) / 2
-  local x = y + screenX / tw
-
-  return x, y, z
-end
-
--- Draw a point in isometric space
-function iso3d.drawPoint(x, y, z, color)
-  local screenX, screenY = iso3d.toScreen(x, y, z)
-
-  if color then
-    love.graphics.setColor(color)
-  end
-
-  love.graphics.circle('fill', screenX, screenY, 3)
-end
-
--- Draw a line in isometric space
-function iso3d.drawLine(x1, y1, z1, x2, y2, z2, color)
-  local screenX1, screenY1 = iso3d.toScreen(x1, y1, z1)
-  local screenX2, screenY2 = iso3d.toScreen(x2, y2, z2)
-
-  if color then
-    love.graphics.setColor(color)
-  end
-
-  love.graphics.line(screenX1, screenY1, screenX2, screenY2)
-end
-
--- Debug function to display library info
-function iso3d.debug()
-  print('=== iso3d Debug Info ===')
-  print('Version: ' .. iso3d._VERSION)
-  print('Tile Width: ' .. iso3d.config.tileWidth)
-  print('Tile Height: ' .. iso3d.config.tileHeight)
-  print('Debug Mode: ' .. tostring(iso3d.config.debug))
-  print('========================')
-end
+-- Export debug functions
+iso3d.drawPoint = debug.drawPoint
+iso3d.drawLine = debug.drawLine
+iso3d.debug = debug.printInfo
 
 return iso3d

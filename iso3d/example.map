@@ -1,0 +1,27 @@
+# Example isometric map file for iso3d
+# Format: type:height:params
+#
+# Tile types:
+#   g = grass (herbe)
+#   w = water (eau)
+#   s = stone (pierre)
+#   d = dirt (terre)
+#
+# Height: 0-3 (0 = ground level, 3 = highest)
+#
+# Params (optional): key=value,key2=value2
+#   Example: g:2:color=green,variant=1
+#
+# Use '.' for empty tiles
+# Lines starting with # are comments
+
+# Simple 5x5 map with varying heights
+g:0 g:0 g:1 g:1 g:2
+g:0 g:1 w:0 g:1 g:2
+g:1 w:0 w:0 w:0 g:2
+g:1 g:1 w:0 g:2 g:3
+g:2 g:2 g:2 g:3 g:3
+
+# You can also add custom parameters:
+# s:2:color=gray,variant=1
+# g:1:biome=forest

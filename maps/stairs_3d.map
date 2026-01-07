@@ -1,0 +1,8 @@
+# Stairs 3D - Map 4x4 en escalier pour démontrer les blocs 3D
+# Escalier montant du coin inférieur gauche au coin supérieur droit
+# Hauteurs: -2 à 3 (progression de 6 niveaux)
+
+s:3  s:2  g:1  w:0
+s:2  g:1  w:0  w:-1
+g:1  w:0  w:-1 d:-2
+w:0  w:-1 d:-2 d:-2
