@@ -55,7 +55,8 @@ function render.drawTileDiamond(x, y, color, opacity)
 end
 
 -- Draw a 3D block (with height)
--- height: height of the block in pixels (32, 64, 96, 128, etc.)
+-- height: height of the block in tile units (0.5, 1, 1.5, 2, etc.)
+--         height=1 creates a perfect cube (height = tileWidth)
 function render.drawBlock(x, y, height, color, opacity)
   if not height or height <= 0 then
     -- If no height, draw as flat tile
@@ -67,7 +68,9 @@ function render.drawBlock(x, y, height, color, opacity)
   local zoom = render.config.zoom
   local tw = render.config.tileWidth / 2 * zoom
   local th = render.config.tileHeight / 2 * zoom
-  local blockHeight = height * zoom
+  -- Convert height units to pixels: height * tileWidth
+  -- This makes height=1 a perfect cube (height = width)
+  local blockHeight = height * render.config.tileWidth * zoom
 
   -- Set color and opacity
   local r, g, b, a = 0.8, 0.8, 0.8, 1

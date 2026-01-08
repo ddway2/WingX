@@ -1,13 +1,14 @@
 # 3D Blocks Demo Map - Showcasing different block heights
-# Format: type:height
-# Block types: b=32px, B=64px, W=96px, T=128px
+# Format: type:height (height in tile units)
+# Block heights: 0=flat, 0.5=half cube, 1=cube, 1.5=tall, 2=tower
+# height=1 creates a perfect cube where block height = tileWidth
 # Flat tiles: g=grass, d=dirt, s=stone, w=water
 
 # Row 1: Tower showcase
 g:0 g:0 g:0 g:0 g:0 g:0 g:0 g:0
 g:0 T:0 g:0 g:0 g:0 g:0 T:0 g:0
 
-# Row 3-4: Height progression
+# Row 3-4: Height progression (staircase)
 g:0 g:0 b:0 B:0 W:0 T:0 g:0 g:0
 g:0 g:0 g:0 g:0 g:0 g:0 g:0 g:0
 
@@ -15,7 +16,7 @@ g:0 g:0 g:0 g:0 g:0 g:0 g:0 g:0
 g:0 W:0 W:0 W:0 W:0 W:0 W:0 g:0
 g:0 W:0 g:0 g:0 g:0 g:0 W:0 g:0
 
-# Row 7-8: Mixed heights creating a structure
+# Row 7-8: Enclosed structure with walls
 g:0 W:0 g:0 g:0 g:0 g:0 W:0 g:0
 g:0 W:0 W:0 W:0 W:0 W:0 W:0 g:0
 
@@ -23,6 +24,6 @@ g:0 W:0 W:0 W:0 W:0 W:0 W:0 g:0
 g:0 g:0 b:0 g:0 b:0 g:0 g:0 g:0
 g:0 g:0 g:0 B:0 g:0 g:0 g:0 g:0
 
-# Row 11-12: Staircase effect
+# Row 11-12: Progressive staircase
 g:0 g:0 g:0 g:0 g:0 g:0 g:0 g:0
 g:0 b:0 B:0 W:0 T:0 g:0 g:0 g:0

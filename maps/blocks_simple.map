@@ -1,6 +1,7 @@
 # Simple 3D Blocks Demo - 4x4 grid showcasing block heights
 # Demonstrates depth sorting and different heights
-# Format: type:height (height in pixels: 0, 32, 64, 96, 128)
+# Format: type:height (height in tile units: 0, 0.5, 1, 1.5, 2)
+# height=1 creates a perfect cube (height = tileWidth)
 
 # Back row (rendered first)
 g:0 b:0 B:0 W:0

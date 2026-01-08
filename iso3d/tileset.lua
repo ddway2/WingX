@@ -19,7 +19,7 @@ function tileset.TileDefinition.new(id, def)
   td.color = def.color or {1, 1, 1, 1}  -- Default color (RGBA)
 
   -- Display parameters
-  td.height = def.height or 0  -- Block height in pixels (0 = flat tile, 32/64/96/128 = block)
+  td.height = def.height or 0  -- Block height in tile units (0 = flat, 1 = cube, 2 = 2x cube height)
   td.heightOffset = def.heightOffset or 0  -- Additional height offset for rendering
   td.scale = def.scale or 1.0  -- Scale multiplier
   td.opacity = def.opacity or 1.0  -- Opacity (0-1)
@@ -268,30 +268,30 @@ function tileset.createDefault()
       },
       b = {
         name = "Block",
-        description = "3D block (32px high)",
+        description = "3D block (half cube)",
         color = {0.7, 0.7, 0.7, 1},
-        height = 32,
+        height = 0.5,
         walkable = false,
       },
       B = {
-        name = "Tall Block",
-        description = "3D tall block (64px high)",
+        name = "Cube",
+        description = "3D cube (1x cube)",
         color = {0.6, 0.6, 0.6, 1},
-        height = 64,
+        height = 1,
         walkable = false,
       },
       W = {
         name = "Wall",
-        description = "Wall block (96px high)",
+        description = "Wall block (1.5x cube)",
         color = {0.5, 0.5, 0.5, 1},
-        height = 96,
+        height = 1.5,
         walkable = false,
       },
       T = {
         name = "Tower",
-        description = "Tower block (128px high)",
+        description = "Tower block (2x cube)",
         color = {0.4, 0.4, 0.4, 1},
-        height = 128,
+        height = 2,
         walkable = false,
       }
     }

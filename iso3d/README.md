@@ -238,17 +238,22 @@ L'ombrage automatique crée un effet 3D réaliste sans nécessiter de sprites su
 
 ### Hauteurs standard
 
-Les hauteurs recommandées sont des multiples de 32 pixels :
+Les hauteurs sont exprimées en unités de tuile, où **hauteur = 1** crée un **cube parfait** (hauteur = largeur de tuile) :
 
-| Hauteur | Description      | Usage typique                    |
-|---------|------------------|----------------------------------|
-| 0       | Tuile plate      | Sol, terrain, eau                |
-| 32      | Petit bloc       | Marches, petits obstacles        |
-| 64      | Bloc moyen       | Murs bas, caisses                |
-| 96      | Bloc haut        | Murs, barrières                  |
-| 128     | Bloc très haut   | Tours, bâtiments, grandes structures |
+| Hauteur | Description      | Hauteur réelle* | Usage typique                    |
+|---------|------------------|-----------------|----------------------------------|
+| 0       | Tuile plate      | 0px             | Sol, terrain, eau                |
+| 0.5     | Demi-cube        | 32px            | Marches, petits obstacles        |
+| 1       | Cube             | 64px            | Murs bas, caisses, blocs         |
+| 1.5     | Cube et demi     | 96px            | Murs, barrières                  |
+| 2       | Double cube      | 128px           | Tours, bâtiments, grandes structures |
 
-**Note:** Vous pouvez utiliser n'importe quelle valeur >= 0. Les valeurs personnalisées (ex: 48, 80, 200) sont supportées.
+*_Avec tileWidth=64 (défaut)_
+
+**Note:**
+- Vous pouvez utiliser n'importe quelle valeur >= 0 (ex: 0.25, 0.75, 3, etc.)
+- **height = 1** crée un cube parfait où la hauteur du bloc = la largeur de la tuile
+- Les hauteurs sont relatives à `tileWidth` : `hauteur_pixels = height * tileWidth`
 
 ### Définition dans les tilesets
 
@@ -266,17 +271,17 @@ return {
     },
 
     -- Blocs 3D (hauteur > 0)
-    w = {
-      name = "Wall",
-      color = {0.5, 0.5, 0.5, 1},
-      height = 64,  -- Bloc de 64px de haut
+    B = {
+      name = "Cube",
+      color = {0.6, 0.6, 0.6, 1},
+      height = 1,  -- Cube parfait (hauteur = largeur)
       walkable = false
     },
 
     T = {
       name = "Tower",
       color = {0.4, 0.4, 0.4, 1},
-      height = 128,  -- Bloc de 128px de haut
+      height = 2,  -- Tour (2x hauteur de cube)
       walkable = false
     }
   }
@@ -289,12 +294,12 @@ Spécifiez la hauteur dans le format `type:height` :
 
 ```
 # Format: type:height
-# Exemples de blocs 3D
+# Exemples de blocs 3D (height=1 crée un cube parfait)
 
-g:0 w:64 w:64 w:64 g:0
-g:0 w:64 g:0  w:64 g:0
-g:0 g:0  g:0  w:64 g:0
-g:0 w:64 w:64 w:64 g:0
+g:0 W:1.5 W:1.5 W:1.5 g:0
+g:0 W:1.5 g:0   W:1.5 g:0
+g:0 g:0   g:0   W:1.5 g:0
+g:0 W:1.5 W:1.5 W:1.5 g:0
 ```
 
 **Note:** La hauteur spécifiée dans le fichier map **remplace** la hauteur par défaut du tileset pour cette tuile.
@@ -303,11 +308,11 @@ g:0 w:64 w:64 w:64 g:0
 
 ```lua
 -- Créer une tuile avec hauteur dans le code
-local wallTile = iso3d.map.Tile.new('w', 64)  -- Mur de 64px
-local towerTile = iso3d.map.Tile.new('T', 128) -- Tour de 128px
+local cubeTile = iso3d.map.Tile.new('B', 1)   -- Cube parfait (height=1)
+local towerTile = iso3d.map.Tile.new('T', 2)  -- Tour (2x cube)
 
 -- Placer dans la map
-gameMap:setTile(5, 5, wallTile)
+gameMap:setTile(5, 5, cubeTile)
 gameMap:setTile(10, 10, towerTile)
 
 -- Le rendu est automatique
@@ -399,19 +404,24 @@ iso3d.drawTileSprite(5, 5, sprite, 1.0, 1.0)
 Dessine un bloc 3D isométrique avec hauteur.
 
 ```lua
--- Dessiner un bloc de 64 pixels de haut
-iso3d.drawBlock(5, 5, 64, {0.7, 0.7, 0.7, 1}, 1.0)
+-- Dessiner un cube parfait (height=1)
+iso3d.drawBlock(5, 5, 1, {0.7, 0.7, 0.7, 1}, 1.0)
 
 -- Différentes hauteurs
-iso3d.drawBlock(3, 3, 32, {0.8, 0.2, 0.2, 1}, 1.0)  -- Petit bloc rouge
-iso3d.drawBlock(7, 7, 128, {0.2, 0.2, 0.8, 1}, 1.0) -- Grand bloc bleu
+iso3d.drawBlock(3, 3, 0.5, {0.8, 0.2, 0.2, 1}, 1.0)  -- Demi-cube rouge
+iso3d.drawBlock(7, 7, 2, {0.2, 0.2, 0.8, 1}, 1.0)    -- Double cube bleu
 ```
 
 **Paramètres:**
 - `x, y` : Position dans la grille
-- `height` : Hauteur du bloc en pixels (0 = tuile plate, 32/64/96/128 = bloc 3D)
+- `height` : Hauteur du bloc en unités de tuile (0 = tuile plate, 1 = cube, 2 = double cube)
 - `color` : Table RGBA `{r, g, b, a}` (valeurs 0-1)
 - `opacity` : Opacité (0-1)
+
+**Système de hauteur:**
+- `height = 1` crée un **cube parfait** où hauteur = largeur de tuile
+- La hauteur en pixels = `height * tileWidth`
+- Avec tileWidth=64 (défaut) : height=1 → 64px, height=2 → 128px
 
 **Rendu:**
 Le bloc 3D est composé de trois faces :

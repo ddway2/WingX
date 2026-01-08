@@ -15,7 +15,7 @@ type:hauteur:paramètres
 ```
 
 - **type** : Un identifiant de type de tuile (une ou plusieurs lettres)
-- **hauteur** : Hauteur du bloc en pixels (0 = tuile plate, 32/64/96/128 = bloc 3D)
+- **hauteur** : Hauteur du bloc en unités de tuile (0 = flat, 1 = cube, 2 = 2x cube)
 - **paramètres** : (Optionnel) Paramètres personnalisés au format `key=value,key2=value2`
 
 ### Structure du fichier
@@ -48,12 +48,14 @@ Les types de tuiles standard sont:
 
 ### Blocs 3D (avec hauteur)
 
-| Type | Nom        | Hauteur | Description            |
-|------|------------|---------|------------------------|
-| `b`  | Block      | 32px    | Petit bloc 3D          |
-| `B`  | Tall Block | 64px    | Bloc moyen 3D          |
-| `W`  | Wall       | 96px    | Mur, bloc haut 3D      |
-| `T`  | Tower      | 128px   | Tour, très haut bloc 3D|
+| Type | Nom        | Hauteur | Hauteur réelle* | Description            |
+|------|------------|---------|-----------------|------------------------|
+| `b`  | Block      | 0.5     | 32px            | Demi-cube 3D           |
+| `B`  | Cube       | 1       | 64px            | Cube parfait 3D        |
+| `W`  | Wall       | 1.5     | 96px            | Mur, cube et demi      |
+| `T`  | Tower      | 2       | 128px           | Tour, double cube      |
+
+*_Avec tileWidth=64 (défaut)_
 
 **Note:** Les types de tuiles peuvent être étendus dans les fichiers tileset. Vous pouvez utiliser d'autres lettres pour définir des tuiles personnalisées.
 
@@ -61,22 +63,28 @@ Les types de tuiles standard sont:
 
 La hauteur d'une tuile détermine si elle est rendue comme une tuile plate ou comme un bloc 3D en perspective isométrique.
 
-| Hauteur | Description              | Rendu                                      |
-|---------|--------------------------|-------------------------------------------|
-| `0`     | Tuile plate              | Losange plat (vue de dessus uniquement)   |
-| `32`    | Petit bloc               | Bloc 3D avec faces latérales (32px)       |
-| `64`    | Bloc moyen               | Bloc 3D avec faces latérales (64px)       |
-| `96`    | Bloc haut                | Bloc 3D avec faces latérales (96px)       |
-| `128`   | Bloc très haut           | Bloc 3D avec faces latérales (128px)      |
+Les hauteurs sont exprimées en **unités de tuile**, où **height=1** crée un **cube parfait** (hauteur = largeur).
+
+| Hauteur | Description              | Hauteur réelle* | Rendu                                      |
+|---------|--------------------------|-----------------|-------------------------------------------|
+| `0`     | Tuile plate              | 0px             | Losange plat (vue de dessus uniquement)   |
+| `0.5`   | Demi-cube                | 32px            | Bloc 3D avec faces latérales              |
+| `1`     | Cube parfait             | 64px            | Cube (hauteur = largeur)                  |
+| `1.5`   | Cube et demi             | 96px            | Bloc 3D allongé                           |
+| `2`     | Double cube              | 128px           | Bloc 3D de 2x la hauteur d'un cube        |
+
+*_Avec tileWidth=64 (défaut)_
 
 **Notes importantes:**
 
 - **Hauteur 0** : Rendu classique en losange plat (comme une tuile au sol)
+- **Hauteur = 1** : Crée un cube parfait où hauteur = largeur de tuile
 - **Hauteur > 0** : Rendu en bloc 3D isométrique avec trois faces visibles :
   - Face du dessus (dessus du bloc) - 100% de luminosité
   - Face droite - 80% de luminosité (ombrage)
   - Face gauche - 60% de luminosité (ombrage plus sombre)
-- **Valeurs personnalisées** : Vous pouvez utiliser n'importe quelle valeur >= 0 (ex: 48, 80, 200)
+- **Conversion en pixels** : `hauteur_pixels = height * tileWidth`
+- **Valeurs personnalisées** : Vous pouvez utiliser n'importe quelle valeur >= 0 (ex: 0.25, 0.75, 3, etc.)
 - **Tri en profondeur** : Les blocs sont automatiquement triés pour un rendu correct (arrière vers avant)
 
 ## Paramètres optionnels
@@ -111,7 +119,7 @@ d:0 d:0 d:0
 ### Map avec blocs 3D simples
 
 ```
-# Blocs 3D - hauteurs variées
+# Blocs 3D - hauteurs variées (height=1 = cube parfait)
 # 4x4
 
 g:0 b:0 B:0 W:0
@@ -123,7 +131,7 @@ g:0 g:0 g:0 g:0
 ### Map avec blocs et terrain
 
 ```
-# Murs et terrain
+# Murs et terrain (W=1.5 = cube et demi)
 # 5x5
 
 g:0 W:0 W:0 W:0 g:0
@@ -223,10 +231,10 @@ g:2  g:2  g:2  g:2  g:3
 Organisez les blocs pour un rendu visuel cohérent:
 
 ```
-# Bon - escalier progressif
+# Bon - escalier progressif (height=1 = cube parfait)
 g:0 b:0 B:0 W:0 T:0
 
-# Structure avec murs
+# Structure avec murs (W=1.5 = mur cube et demi)
 W:0 W:0 W:0 W:0
 W:0 g:0 g:0 W:0
 W:0 g:0 g:0 W:0
@@ -234,6 +242,8 @@ W:0 W:0 W:0 W:0
 ```
 
 **Tri en profondeur automatique:** Les blocs sont automatiquement triés de l'arrière vers l'avant selon leur position (x, y) dans la grille. Pas besoin de gérer l'ordre manuellement !
+
+**Système de hauteur:** Les hauteurs sont en unités de tuile. `height=1` crée un cube parfait où la hauteur du bloc = la largeur de la tuile. La conversion est : `hauteur_pixels = height * tileWidth`.
 
 ### 4. Utilisez le script de génération
 
@@ -316,11 +326,11 @@ Le projet contient plusieurs maps d'exemple:
 
 ### Maps de démonstration de blocs 3D
 
-- **blocks_simple.map** (4x4) - Petite map montrant les différentes hauteurs de blocs (32, 64, 96px)
+- **blocks_simple.map** (4x4) - Petite map montrant les différentes hauteurs de blocs (0.5, 1, 1.5)
 - **blocks_demo.map** (8x12) - Map complète démontrant :
-  - Tours (128px)
-  - Murs formant une structure (96px)
-  - Progression de hauteurs (escalier 32→64→96→128)
+  - Tours (height=2, double cube)
+  - Murs formant une structure (height=1.5, cube et demi)
+  - Progression de hauteurs (escalier 0.5→1→1.5→2)
   - Motifs de blocs variés
 - **demo_3d.map** (4x4) - Structure pyramidale classique
 - **stairs_3d.map** (4x4) - Escalier diagonal
@@ -330,6 +340,7 @@ Ces petites maps sont idéales pour:
 - Voir l'effet du shading sur les trois faces (60%, 80%, 100%)
 - Tester le tri en profondeur automatique
 - Observer comment les blocs s'empilent visuellement
+- Comprendre le système où **height=1 = cube parfait**
 - Tester la rotation de caméra avec des blocs 3D
 
 ### Maps de test
