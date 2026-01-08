@@ -223,6 +223,122 @@ end
 - **RPG isométriques** : Mieux voir les obstacles et chemins
 - **Level design** : Vérifier l'apparence de la map de tous les côtés
 
+## Blocs 3D
+
+iso3d supporte le rendu de blocs 3D isométriques avec hauteurs paramétrables, permettant de créer des structures verticales comme des murs, tours, et bâtiments.
+
+### Concept
+
+Un bloc 3D est une tuile isométrique avec une hauteur > 0. Il est rendu avec trois faces visibles :
+- **Face du dessus** : Losange plat (vue de dessus du bloc) - 100% de luminosité
+- **Face droite** : Parallélogramme vertical - 80% de luminosité (ombrage)
+- **Face gauche** : Parallélogramme vertical - 60% de luminosité (ombrage plus sombre)
+
+L'ombrage automatique crée un effet 3D réaliste sans nécessiter de sprites supplémentaires.
+
+### Hauteurs standard
+
+Les hauteurs recommandées sont des multiples de 32 pixels :
+
+| Hauteur | Description      | Usage typique                    |
+|---------|------------------|----------------------------------|
+| 0       | Tuile plate      | Sol, terrain, eau                |
+| 32      | Petit bloc       | Marches, petits obstacles        |
+| 64      | Bloc moyen       | Murs bas, caisses                |
+| 96      | Bloc haut        | Murs, barrières                  |
+| 128     | Bloc très haut   | Tours, bâtiments, grandes structures |
+
+**Note:** Vous pouvez utiliser n'importe quelle valeur >= 0. Les valeurs personnalisées (ex: 48, 80, 200) sont supportées.
+
+### Définition dans les tilesets
+
+Ajoutez la propriété `height` aux définitions de tuiles :
+
+```lua
+return {
+  name = "Tileset avec blocs",
+  tiles = {
+    -- Tuile plate (hauteur 0)
+    g = {
+      name = "Grass",
+      color = {0.2, 0.8, 0.3, 1},
+      height = 0  -- Tuile plate
+    },
+
+    -- Blocs 3D (hauteur > 0)
+    w = {
+      name = "Wall",
+      color = {0.5, 0.5, 0.5, 1},
+      height = 64,  -- Bloc de 64px de haut
+      walkable = false
+    },
+
+    T = {
+      name = "Tower",
+      color = {0.4, 0.4, 0.4, 1},
+      height = 128,  -- Bloc de 128px de haut
+      walkable = false
+    }
+  }
+}
+```
+
+### Définition dans les fichiers map
+
+Spécifiez la hauteur dans le format `type:height` :
+
+```
+# Format: type:height
+# Exemples de blocs 3D
+
+g:0 w:64 w:64 w:64 g:0
+g:0 w:64 g:0  w:64 g:0
+g:0 g:0  g:0  w:64 g:0
+g:0 w:64 w:64 w:64 g:0
+```
+
+**Note:** La hauteur spécifiée dans le fichier map **remplace** la hauteur par défaut du tileset pour cette tuile.
+
+### Exemple d'utilisation
+
+```lua
+-- Créer une tuile avec hauteur dans le code
+local wallTile = iso3d.map.Tile.new('w', 64)  -- Mur de 64px
+local towerTile = iso3d.map.Tile.new('T', 128) -- Tour de 128px
+
+-- Placer dans la map
+gameMap:setTile(5, 5, wallTile)
+gameMap:setTile(10, 10, towerTile)
+
+-- Le rendu est automatique
+iso3d.drawMap(gameMap, {x = 400, y = 300})
+```
+
+### Rendu et tri en profondeur
+
+**Tri automatique:** Les blocs sont automatiquement triés de l'arrière vers l'avant selon leur position (x, y) dans la grille. Les blocs plus éloignés (coordonnées x+y plus petites) sont dessinés en premier.
+
+**Rotation compatible:** Le système de blocs 3D fonctionne parfaitement avec la rotation de caméra. L'ordre de rendu s'adapte automatiquement selon l'orientation.
+
+**Zoom compatible:** Les blocs sont correctement redimensionnés avec le zoom. L'échelle s'applique uniformément aux trois faces.
+
+### Combinaison avec sprites
+
+Les blocs 3D utilisent uniquement des couleurs (rendu procédural). Si vous définissez un sprite pour une tuile, le sprite sera utilisé à la place du rendu en bloc 3D, même si une hauteur est spécifiée.
+
+**Priorité de rendu:**
+1. **Sprite** : Si défini, le sprite est utilisé
+2. **Bloc 3D** : Si height > 0 et pas de sprite, rendu en bloc 3D
+3. **Tuile plate** : Si height = 0 et pas de sprite, rendu en losange plat
+
+### Cas d'usage
+
+- **City builders** : Créer des bâtiments, murs, tours
+- **Jeux de stratégie** : Obstacles, fortifications, structures
+- **Platformers isométriques** : Plateformes à différentes hauteurs
+- **RPG** : Murs de donjons, structures architecturales
+- **Level design** : Prototypage rapide de niveaux 3D
+
 ## API de projection
 
 ### `iso3d.toScreen(x, y)`
@@ -279,8 +395,34 @@ iso3d.drawTileSprite(5, 5, sprite, 1.0, 1.0)
 - `opacity` : Opacité (0-1)
 - `scale` : Échelle du sprite
 
+### `iso3d.drawBlock(x, y, height, color, opacity)`
+Dessine un bloc 3D isométrique avec hauteur.
+
+```lua
+-- Dessiner un bloc de 64 pixels de haut
+iso3d.drawBlock(5, 5, 64, {0.7, 0.7, 0.7, 1}, 1.0)
+
+-- Différentes hauteurs
+iso3d.drawBlock(3, 3, 32, {0.8, 0.2, 0.2, 1}, 1.0)  -- Petit bloc rouge
+iso3d.drawBlock(7, 7, 128, {0.2, 0.2, 0.8, 1}, 1.0) -- Grand bloc bleu
+```
+
+**Paramètres:**
+- `x, y` : Position dans la grille
+- `height` : Hauteur du bloc en pixels (0 = tuile plate, 32/64/96/128 = bloc 3D)
+- `color` : Table RGBA `{r, g, b, a}` (valeurs 0-1)
+- `opacity` : Opacité (0-1)
+
+**Rendu:**
+Le bloc 3D est composé de trois faces :
+- **Face du dessus** : Losange plat au sommet du bloc (100% luminosité)
+- **Face droite** : Parallélogramme vertical (80% luminosité)
+- **Face gauche** : Parallélogramme vertical (60% luminosité)
+
+Les faces sont automatiquement ombrées pour donner un effet 3D réaliste.
+
 ### `iso3d.drawTile(tile, x, y, tileset)`
-Dessine une tuile avec ses propriétés du tileset.
+Dessine une tuile avec ses propriétés du tileset. Supporte automatiquement les blocs 3D si la tuile a une hauteur > 0.
 
 ```lua
 local tile = gameMap:getTile(2, 3)
@@ -611,6 +753,7 @@ end
 - [x] Réorganisation en modules séparés
 - [x] Système de zoom dynamique
 - [x] Système de caméra avancé (rotation 90°)
+- [x] Système de blocs 3D avec hauteurs paramétrables
 - [ ] Optimisations de performance (culling, batching)
 
 ## Licence

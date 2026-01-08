@@ -1,0 +1,15 @@
+# Simple 3D Blocks Demo - 4x4 grid showcasing block heights
+# Demonstrates depth sorting and different heights
+# Format: type:height (height in pixels: 0, 32, 64, 96, 128)
+
+# Back row (rendered first)
+g:0 b:0 B:0 W:0
+
+# Second row
+d:0 g:0 b:0 B:0
+
+# Third row
+s:0 d:0 g:0 b:0
+
+# Front row (rendered last)
+g:0 s:0 d:0 g:0

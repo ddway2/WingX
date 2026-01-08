@@ -15,7 +15,7 @@ type:hauteur:paramètres
 ```
 
 - **type** : Un identifiant de type de tuile (une ou plusieurs lettres)
-- **hauteur** : Un nombre entier de -2 à 3
+- **hauteur** : Hauteur du bloc en pixels (0 = tuile plate, 32/64/96/128 = bloc 3D)
 - **paramètres** : (Optionnel) Paramètres personnalisés au format `key=value,key2=value2`
 
 ### Structure du fichier
@@ -36,29 +36,48 @@ type:hauteur type:hauteur type:hauteur
 
 Les types de tuiles standard sont:
 
+### Tuiles plates (height = 0)
+
 | Type | Nom     | Description           |
 |------|---------|-----------------------|
 | `g`  | Grass   | Herbe, terrain normal |
 | `w`  | Water   | Eau                   |
 | `s`  | Stone   | Pierre, roche         |
 | `d`  | Dirt    | Terre, sol            |
-| `n`  | Sand    | Sable                 |
 | `.`  | Empty   | Tuile vide            |
+
+### Blocs 3D (avec hauteur)
+
+| Type | Nom        | Hauteur | Description            |
+|------|------------|---------|------------------------|
+| `b`  | Block      | 32px    | Petit bloc 3D          |
+| `B`  | Tall Block | 64px    | Bloc moyen 3D          |
+| `W`  | Wall       | 96px    | Mur, bloc haut 3D      |
+| `T`  | Tower      | 128px   | Tour, très haut bloc 3D|
 
 **Note:** Les types de tuiles peuvent être étendus dans les fichiers tileset. Vous pouvez utiliser d'autres lettres pour définir des tuiles personnalisées.
 
-## Hauteurs
+## Hauteurs de blocs 3D
 
-Les hauteurs vont de **-2** (le plus bas) à **3** (le plus haut):
+La hauteur d'une tuile détermine si elle est rendue comme une tuile plate ou comme un bloc 3D en perspective isométrique.
 
-| Hauteur | Description          | Utilisation typique           |
-|---------|----------------------|-------------------------------|
-| `-2`    | Très profond         | Eau profonde, fosses          |
-| `-1`    | Profond              | Eau peu profonde, routes      |
-| `0`     | Niveau du sol        | Terrain plat (référence)      |
-| `1`     | Surélevé             | Petites collines              |
-| `2`     | Élevé                | Collines, plateaux            |
-| `3`     | Très élevé           | Montagnes, tours              |
+| Hauteur | Description              | Rendu                                      |
+|---------|--------------------------|-------------------------------------------|
+| `0`     | Tuile plate              | Losange plat (vue de dessus uniquement)   |
+| `32`    | Petit bloc               | Bloc 3D avec faces latérales (32px)       |
+| `64`    | Bloc moyen               | Bloc 3D avec faces latérales (64px)       |
+| `96`    | Bloc haut                | Bloc 3D avec faces latérales (96px)       |
+| `128`   | Bloc très haut           | Bloc 3D avec faces latérales (128px)      |
+
+**Notes importantes:**
+
+- **Hauteur 0** : Rendu classique en losange plat (comme une tuile au sol)
+- **Hauteur > 0** : Rendu en bloc 3D isométrique avec trois faces visibles :
+  - Face du dessus (dessus du bloc) - 100% de luminosité
+  - Face droite - 80% de luminosité (ombrage)
+  - Face gauche - 60% de luminosité (ombrage plus sombre)
+- **Valeurs personnalisées** : Vous pouvez utiliser n'importe quelle valeur >= 0 (ex: 48, 80, 200)
+- **Tri en profondeur** : Les blocs sont automatiquement triés pour un rendu correct (arrière vers avant)
 
 ## Paramètres optionnels
 
@@ -80,26 +99,38 @@ s:3:type=granite,texture=rough
 
 ## Exemples
 
-### Map simple 3x3
+### Map simple 3x3 avec tuiles plates
 
 ```
-# Simple terrain
-g:0 g:0 g:1
-g:0 w:-1 g:1
-g:1 g:1 g:2
+# Simple terrain plat
+g:0 g:0 s:0
+g:0 w:0 s:0
+d:0 d:0 d:0
 ```
 
-### Map avec commentaires et paramètres
+### Map avec blocs 3D simples
 
 ```
-# Petite île avec montagne
-# 5x5 tiles
+# Blocs 3D - hauteurs variées
+# 4x4
 
-w:-2 w:-2 w:-1 w:-1 w:-2
-w:-2 w:-1 n:0  w:-1 w:-2
-w:-1 n:0  g:1  n:0  w:-1
-w:-1 g:1  s:3  g:1  w:-1
-w:-2 w:-1 w:-1 w:-2 w:-2
+g:0 b:0 B:0 W:0
+g:0 g:0 b:0 B:0
+g:0 g:0 g:0 b:0
+g:0 g:0 g:0 g:0
+```
+
+### Map avec blocs et terrain
+
+```
+# Murs et terrain
+# 5x5
+
+g:0 W:0 W:0 W:0 g:0
+g:0 W:0 g:0 W:0 g:0
+g:0 g:0 g:0 W:0 g:0
+g:0 W:0 W:0 W:0 g:0
+g:0 g:0 g:0 g:0 g:0
 ```
 
 ### Map avec tuiles vides
@@ -150,16 +181,17 @@ g:0 g:0      # Cette ligne n'a que 2 tuiles
 g:0 g:0 g:0
 ```
 
-### Hauteurs invalides
+### Hauteurs négatives
 
-Les hauteurs en dehors de la plage [-2, 3] sont automatiquement limitées:
-- Valeur < -2 → -2
-- Valeur > 3 → 3
+Les hauteurs négatives sont automatiquement converties en 0:
+- Valeur < 0 → 0
 
 ```
-g:-5 → g:-2  # Limité à -2
-s:10 → s:3   # Limité à 3
+g:-5 → g:0  # Converti en 0
+s:-1 → s:0  # Converti en 0
 ```
+
+**Note:** Les hauteurs de blocs doivent être >= 0. Les valeurs recommandées sont 0, 32, 64, 96, 128, mais toute valeur positive est acceptée.
 
 ## Conseils pour créer des maps
 
@@ -186,17 +218,22 @@ g:1  g:1  g:1  g:2  g:2
 g:2  g:2  g:2  g:2  g:3
 ```
 
-### 3. Progression logique des hauteurs
+### 3. Organisation des blocs 3D
 
-Créez des transitions douces entre les hauteurs:
+Organisez les blocs pour un rendu visuel cohérent:
 
 ```
-# Bon - transition douce
-w:-2 w:-1 n:0 g:0 g:1 s:2 s:3
+# Bon - escalier progressif
+g:0 b:0 B:0 W:0 T:0
 
-# À éviter - sauts brusques
-w:-2 g:0 s:3 w:-2 s:3
+# Structure avec murs
+W:0 W:0 W:0 W:0
+W:0 g:0 g:0 W:0
+W:0 g:0 g:0 W:0
+W:0 W:0 W:0 W:0
 ```
+
+**Tri en profondeur automatique:** Les blocs sont automatiquement triés de l'arrière vers l'avant selon leur position (x, y) dans la grille. Pas besoin de gérer l'ordre manuellement !
 
 ### 4. Utilisez le script de génération
 
@@ -277,16 +314,23 @@ file:close()
 
 Le projet contient plusieurs maps d'exemple:
 
-### Maps de démonstration 3D
+### Maps de démonstration de blocs 3D
 
-- **demo_3d.map** (4x4) - Structure pyramidale montrant les blocs 3D avec différentes hauteurs
-- **stairs_3d.map** (4x4) - Escalier diagonal utilisant toute la plage de hauteurs (-2 à 3)
+- **blocks_simple.map** (4x4) - Petite map montrant les différentes hauteurs de blocs (32, 64, 96px)
+- **blocks_demo.map** (8x12) - Map complète démontrant :
+  - Tours (128px)
+  - Murs formant une structure (96px)
+  - Progression de hauteurs (escalier 32→64→96→128)
+  - Motifs de blocs variés
+- **demo_3d.map** (4x4) - Structure pyramidale classique
+- **stairs_3d.map** (4x4) - Escalier diagonal
 
 Ces petites maps sont idéales pour:
-- Comprendre le rendu des blocs 3D
-- Voir l'effet du shading sur les faces (70%, 85%, 100%)
-- Tester le tri en profondeur
-- Observer la progression visuelle des hauteurs
+- Comprendre le rendu des blocs 3D isométriques
+- Voir l'effet du shading sur les trois faces (60%, 80%, 100%)
+- Tester le tri en profondeur automatique
+- Observer comment les blocs s'empilent visuellement
+- Tester la rotation de caméra avec des blocs 3D
 
 ### Maps de test
 

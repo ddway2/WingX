@@ -19,6 +19,7 @@ function tileset.TileDefinition.new(id, def)
   td.color = def.color or {1, 1, 1, 1}  -- Default color (RGBA)
 
   -- Display parameters
+  td.height = def.height or 0  -- Block height in pixels (0 = flat tile, 32/64/96/128 = block)
   td.heightOffset = def.heightOffset or 0  -- Additional height offset for rendering
   td.scale = def.scale or 1.0  -- Scale multiplier
   td.opacity = def.opacity or 1.0  -- Opacity (0-1)
@@ -264,6 +265,34 @@ function tileset.createDefault()
         description = "Dirt terrain",
         color = {0.6, 0.4, 0.2, 1},
         walkable = true,
+      },
+      b = {
+        name = "Block",
+        description = "3D block (32px high)",
+        color = {0.7, 0.7, 0.7, 1},
+        height = 32,
+        walkable = false,
+      },
+      B = {
+        name = "Tall Block",
+        description = "3D tall block (64px high)",
+        color = {0.6, 0.6, 0.6, 1},
+        height = 64,
+        walkable = false,
+      },
+      W = {
+        name = "Wall",
+        description = "Wall block (96px high)",
+        color = {0.5, 0.5, 0.5, 1},
+        height = 96,
+        walkable = false,
+      },
+      T = {
+        name = "Tower",
+        description = "Tower block (128px high)",
+        color = {0.4, 0.4, 0.4, 1},
+        height = 128,
+        walkable = false,
       }
     }
   })

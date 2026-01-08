@@ -107,6 +107,7 @@ iso3d.toWorld = projection.toWorld
 -- Export render functions
 iso3d.drawTileDiamond = render.drawTileDiamond
 iso3d.drawTileSprite = render.drawTileSprite
+iso3d.drawBlock = render.drawBlock
 iso3d.drawTile = render.drawTile
 iso3d.drawMap = render.drawMap
 

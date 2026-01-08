@@ -11,6 +11,8 @@ local font
 
 -- Available maps
 local maps = {
+  {name = "Blocks Simple 4x4", file = "maps/blocks_simple.map"},
+  {name = "Blocks Demo 8x12", file = "maps/blocks_demo.map"},
   {name = "Demo 3D 4x4", file = "maps/demo_3d.map"},
   {name = "Stairs 3D 4x4", file = "maps/stairs_3d.map"},
   {name = "Test 8x8", file = "maps/test.map"},

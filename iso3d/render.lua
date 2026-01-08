@@ -54,6 +54,71 @@ function render.drawTileDiamond(x, y, color, opacity)
   love.graphics.polygon('line', vertices)
 end
 
+-- Draw a 3D block (with height)
+-- height: height of the block in pixels (32, 64, 96, 128, etc.)
+function render.drawBlock(x, y, height, color, opacity)
+  if not height or height <= 0 then
+    -- If no height, draw as flat tile
+    render.drawTileDiamond(x, y, color, opacity)
+    return
+  end
+
+  local screenX, screenY = render.projection.toScreen(x, y)
+  local zoom = render.config.zoom
+  local tw = render.config.tileWidth / 2 * zoom
+  local th = render.config.tileHeight / 2 * zoom
+  local blockHeight = height * zoom
+
+  -- Set color and opacity
+  local r, g, b, a = 0.8, 0.8, 0.8, 1
+  if color then
+    r, g, b, a = color[1], color[2], color[3], color[4] or 1
+  end
+  if opacity then
+    a = a * opacity
+  end
+
+  -- Calculate face colors (darker for sides)
+  local leftR, leftG, leftB = r * 0.6, g * 0.6, b * 0.6
+  local rightR, rightG, rightB = r * 0.8, g * 0.8, b * 0.8
+
+  -- Draw left face (darker)
+  love.graphics.setColor(leftR, leftG, leftB, a)
+  local leftVertices = {
+    screenX - tw, screenY,                    -- Top left
+    screenX - tw, screenY + blockHeight,      -- Bottom left
+    screenX, screenY + th + blockHeight,      -- Bottom center
+    screenX, screenY + th                     -- Top center
+  }
+  love.graphics.polygon('fill', leftVertices)
+  love.graphics.setColor(0, 0, 0, 0.3)
+  love.graphics.polygon('line', leftVertices)
+
+  -- Draw right face (medium brightness)
+  love.graphics.setColor(rightR, rightG, rightB, a)
+  local rightVertices = {
+    screenX, screenY + th,                    -- Top center
+    screenX, screenY + th + blockHeight,      -- Bottom center
+    screenX + tw, screenY + blockHeight,      -- Bottom right
+    screenX + tw, screenY                     -- Top right
+  }
+  love.graphics.polygon('fill', rightVertices)
+  love.graphics.setColor(0, 0, 0, 0.3)
+  love.graphics.polygon('line', rightVertices)
+
+  -- Draw top face (brightest - original color)
+  love.graphics.setColor(r, g, b, a)
+  local topVertices = {
+    screenX, screenY - th - blockHeight,      -- Top
+    screenX + tw, screenY - blockHeight,      -- Right
+    screenX, screenY + th - blockHeight,      -- Bottom
+    screenX - tw, screenY - blockHeight       -- Left
+  }
+  love.graphics.polygon('fill', topVertices)
+  love.graphics.setColor(0, 0, 0, 0.3)
+  love.graphics.polygon('line', topVertices)
+end
+
 -- Draw a sprite on an isometric tile
 function render.drawTileSprite(x, y, sprite, opacity, scale)
   if not sprite then return end
@@ -101,6 +166,9 @@ function render.drawTile(tile, x, y, tileset, mapWidth, mapHeight)
   local opacity = tileDef and tileDef.opacity or 1.0
   local scale = tileDef and tileDef.scale or 1.0
 
+  -- Get height (tile-specific height overrides tileset default)
+  local height = tile.height or (tileDef and tileDef.height) or 0
+
   -- Apply rotation to coordinates
   local renderX, renderY = x, y
   if render.config.rotation ~= 0 and mapWidth and mapHeight then
@@ -113,8 +181,11 @@ function render.drawTile(tile, x, y, tileset, mapWidth, mapHeight)
   if sprite then
     -- Render with sprite
     render.drawTileSprite(renderX, renderY, sprite, opacity, scale)
+  elseif height > 0 then
+    -- Render as 3D block
+    render.drawBlock(renderX, renderY, height, color, opacity)
   else
-    -- Render with color (fallback when no sprite)
+    -- Render as flat tile (fallback when no sprite and no height)
     render.drawTileDiamond(renderX, renderY, color, opacity)
   end
 
@@ -122,7 +193,11 @@ function render.drawTile(tile, x, y, tileset, mapWidth, mapHeight)
   if render.config.debug then
     local screenX, screenY = render.projection.toScreen(renderX, renderY)
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.print(tile.type, screenX - 10, screenY - 5)
+    local debugText = tile.type
+    if height > 0 then
+      debugText = debugText .. ' (h:' .. height .. ')'
+    end
+    love.graphics.print(debugText, screenX - 20, screenY - 5)
   end
 end
 

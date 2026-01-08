@@ -71,13 +71,13 @@ map.Tile.__index = map.Tile
 function map.Tile.new(type, height, params)
   local t = setmetatable({}, map.Tile)
   t.type = type or 'g'  -- Default: grass
-  t.height = height or 0  -- Default: height 0 (-2 to 3 supported)
+  t.height = height or 0  -- Default: flat tile (0 = no height, 32/64/96/128 = block height in pixels)
   t.params = params or {}
   return t
 end
 
 -- Parse a tile string format: "type:height:param1=value1,param2=value2"
--- Examples: "g:0", "w:1", "s:2:color=blue"
+-- Examples: "g:0" (flat grass), "w:64" (wall block 64px high), "s:128:color=blue"
 function map.parseTileString(str)
   str = str:match("^%s*(.-)%s*$")  -- Trim whitespace
 
@@ -104,8 +104,8 @@ function map.parseTileString(str)
     end
   end
 
-  -- Clamp height to -2 to 3
-  height = math.max(-2, math.min(3, height))
+  -- Validate height (must be >= 0, typically 0, 32, 64, 96, 128)
+  height = math.max(0, height)
 
   return map.Tile.new(tileType, height, params)
 end
@@ -113,8 +113,8 @@ end
 -- Load a map from a string
 -- Format: Each line is a row, tiles separated by spaces
 -- Example:
---   g:0 g:1 g:2
---   w:0 g:1 s:2
+--   g:0 w:64 w:64     (grass, wall block 64px, wall block 64px)
+--   g:0 g:0 w:128     (grass, grass, wall block 128px)
 function map.loadFromString(str)
   local lines = {}
   for line in str:gmatch("[^\r\n]+") do
