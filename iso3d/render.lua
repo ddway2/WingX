@@ -94,8 +94,6 @@ function render.drawBlock(x, y, height, color, opacity)
     screenX, screenY + th                     -- South corner at base
   }
   love.graphics.polygon('fill', leftVertices)
-  love.graphics.setColor(0, 0, 0, 0.3)
-  love.graphics.polygon('line', leftVertices)
 
   -- Draw right face (medium brightness)
   love.graphics.setColor(rightR, rightG, rightB, a)
@@ -106,8 +104,6 @@ function render.drawBlock(x, y, height, color, opacity)
     screenX - tw, screenY                     -- West corner at base
   }
   love.graphics.polygon('fill', rightVertices)
-  love.graphics.setColor(0, 0, 0, 0.3)
-  love.graphics.polygon('line', rightVertices)
 
   -- Draw top face (brightest - original color)
   love.graphics.setColor(r, g, b, a)
@@ -118,8 +114,6 @@ function render.drawBlock(x, y, height, color, opacity)
     screenX - tw, screenY - blockHeight       -- Left
   }
   love.graphics.polygon('fill', topVertices)
-  love.graphics.setColor(0, 0, 0, 0.3)
-  love.graphics.polygon('line', topVertices)
 end
 
 -- Draw a sprite on an isometric tile
