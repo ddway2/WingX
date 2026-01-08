@@ -1,0 +1,7 @@
+# Test Cube - Map 3x3 avec un seul cube au milieu
+# Pour tester le rendu d'un cube parfait (height=1)
+# Le cube devrait avoir height = width (64px = 64px avec tileWidth=64)
+
+g:0 g:0 g:0
+g:0 B:1 g:0
+g:0 g:0 g:0
