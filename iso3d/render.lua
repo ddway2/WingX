@@ -220,12 +220,36 @@ function render.drawMap(gameMap, offset)
     render.config.rotation
   )
 
-  -- Draw tiles in correct order (back to front)
+  -- First pass: Draw flat tiles (height=0) in back-to-front order
   for y = startY, endY, stepY do
     for x = startX, endX, stepX do
       local tile = gameMap:getTile(x, y)
       if tile then
-        render.drawTile(tile, x, y, gameMap:getTileset(), gameMap.width, gameMap.height)
+        -- Get tile definition to check height
+        local tileDef = gameMap:getTileset() and gameMap:getTileset():getDefinition(tile.type)
+        local height = tile.height or (tileDef and tileDef.height) or 0
+
+        -- Only draw flat tiles in this pass
+        if height == 0 then
+          render.drawTile(tile, x, y, gameMap:getTileset(), gameMap.width, gameMap.height)
+        end
+      end
+    end
+  end
+
+  -- Second pass: Draw 3D blocks (height>0) in back-to-front order
+  for y = startY, endY, stepY do
+    for x = startX, endX, stepX do
+      local tile = gameMap:getTile(x, y)
+      if tile then
+        -- Get tile definition to check height
+        local tileDef = gameMap:getTileset() and gameMap:getTileset():getDefinition(tile.type)
+        local height = tile.height or (tileDef and tileDef.height) or 0
+
+        -- Only draw blocks in this pass
+        if height > 0 then
+          render.drawTile(tile, x, y, gameMap:getTileset(), gameMap.width, gameMap.height)
+        end
       end
     end
   end
