@@ -68,9 +68,9 @@ function render.drawBlock(x, y, height, color, opacity)
   local zoom = render.config.zoom
   local tw = render.config.tileWidth / 2 * zoom
   local th = render.config.tileHeight / 2 * zoom
-  -- Convert height units to pixels: height * tileWidth
-  -- This makes height=1 a perfect cube (height = width)
-  local blockHeight = height * render.config.tileWidth * zoom
+  -- Convert height units to pixels for isometric 2:1 projection
+  -- Use tileWidth / 2 (= tileHeight) to get correct cube proportions
+  local blockHeight = height * render.config.tileWidth / 2 * zoom
 
   -- Set color and opacity
   local r, g, b, a = 0.8, 0.8, 0.8, 1
@@ -88,10 +88,10 @@ function render.drawBlock(x, y, height, color, opacity)
   -- Draw left face (darker)
   love.graphics.setColor(leftR, leftG, leftB, a)
   local leftVertices = {
-    screenX - tw, screenY,                    -- Top left
-    screenX - tw, screenY + blockHeight,      -- Bottom left
-    screenX, screenY + th + blockHeight,      -- Bottom center
-    screenX, screenY + th                     -- Top center
+    screenX - tw, screenY - blockHeight,      -- Top left (corner of top face)
+    screenX - tw, screenY,                    -- Bottom left (corner of base)
+    screenX, screenY + th,                    -- Bottom center (bottom corner of base)
+    screenX, screenY + th - blockHeight       -- Top center (bottom corner of top face)
   }
   love.graphics.polygon('fill', leftVertices)
   love.graphics.setColor(0, 0, 0, 0.3)
@@ -100,10 +100,10 @@ function render.drawBlock(x, y, height, color, opacity)
   -- Draw right face (medium brightness)
   love.graphics.setColor(rightR, rightG, rightB, a)
   local rightVertices = {
-    screenX, screenY + th,                    -- Top center
-    screenX, screenY + th + blockHeight,      -- Bottom center
-    screenX + tw, screenY + blockHeight,      -- Bottom right
-    screenX + tw, screenY                     -- Top right
+    screenX, screenY - th - blockHeight,      -- Top center (top corner of top face)
+    screenX, screenY - th,                    -- Bottom center (top corner of base)
+    screenX + tw, screenY,                    -- Bottom right (right corner of base)
+    screenX + tw, screenY - blockHeight       -- Top right (right corner of top face)
   }
   love.graphics.polygon('fill', rightVertices)
   love.graphics.setColor(0, 0, 0, 0.3)
