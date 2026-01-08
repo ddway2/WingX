@@ -85,25 +85,25 @@ function render.drawBlock(x, y, height, color, opacity)
   local leftR, leftG, leftB = r * 0.6, g * 0.6, b * 0.6
   local rightR, rightG, rightB = r * 0.8, g * 0.8, b * 0.8
 
-  -- Draw left face (west face - darker)
+  -- Draw left face (darker)
   love.graphics.setColor(leftR, leftG, leftB, a)
   local leftVertices = {
-    screenX - tw, screenY - blockHeight,      -- West corner at top
-    screenX, screenY - th - blockHeight,      -- North corner at top
-    screenX, screenY - th,                    -- North corner at base
-    screenX - tw, screenY                     -- West corner at base
+    screenX, screenY + th - blockHeight,      -- South corner at top
+    screenX + tw, screenY - blockHeight,      -- East corner at top
+    screenX + tw, screenY,                    -- East corner at base
+    screenX, screenY + th                     -- South corner at base
   }
   love.graphics.polygon('fill', leftVertices)
   love.graphics.setColor(0, 0, 0, 0.3)
   love.graphics.polygon('line', leftVertices)
 
-  -- Draw right face (south face - medium brightness)
+  -- Draw right face (medium brightness)
   love.graphics.setColor(rightR, rightG, rightB, a)
   local rightVertices = {
-    screenX, screenY + th - blockHeight,      -- South corner at top
-    screenX + tw, screenY - blockHeight,      -- East corner at top
-    screenX + tw, screenY,                    -- East corner at base
-    screenX, screenY + th                     -- South corner at base
+    screenX - tw, screenY - blockHeight,      -- West corner at top
+    screenX, screenY - th - blockHeight,      -- North corner at top
+    screenX, screenY - th,                    -- North corner at base
+    screenX - tw, screenY                     -- West corner at base
   }
   love.graphics.polygon('fill', rightVertices)
   love.graphics.setColor(0, 0, 0, 0.3)
